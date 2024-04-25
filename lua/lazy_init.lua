@@ -1,9 +1,6 @@
-Conf = {}
-Conf.plugins = {}
-
 require 'config.init'
-require 'plugins.init'
 
+-- clone lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -13,12 +10,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
 
-local plugins = {}
-for _, plug in pairs(Conf.plugins) do
-	plugins[#plugins + 1] = plug
-end
-
-require('lazy').setup(plugins, {
+require('lazy').setup(require 'plugins.init', {
     performance = {
         rtp = {
             disabled_plugins = {

@@ -1,4 +1,8 @@
-Conf.plugins['nvim-treesitter'] = {
+local utils = require('utils')
+
+local plugins = {}
+
+plugins['nvim-treesitter'] = {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     dependencies = { "hiphish/rainbow-delimiters.nvim" },
@@ -71,3 +75,42 @@ Conf.plugins['nvim-treesitter'] = {
         }
     end,
 }
+
+plugins['dashboard'] = {
+    "nvimdev/dashboard-nvim",
+    lazy = false,
+    opts = {
+        theme = "doom",
+        config = {
+            -- https://patorjk.com/software/taag
+            header = utils.readFileLines(utils.configRoot .. '/header.txt'),
+            center = {
+                {
+                    icon = "  ",
+                    desc = "Lazy Profile",
+                    action = "Lazy profile",
+                },
+                {
+                    icon = "  ",
+                    desc = "Edit preferences   ",
+                    action = string.format("edit %s/lua/custom/init.lua", utils.configRoot),
+                },
+                {
+                    icon = "  ",
+                    desc = "Mason",
+                    action = "Mason",
+                },
+                {
+                    icon = "  ",
+                    desc = "About IceNvim",
+                    action = "lua require('plugins.utils').about()",
+                },
+            },
+        },
+    },
+    config = function(_, opts)
+        require("dashboard").setup(opts)
+    end,
+}
+
+return plugins
