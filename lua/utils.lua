@@ -34,4 +34,15 @@ end
 
 M.configRoot = vim.fn.stdpath('config')
 
+M.spiltString = function(inputString, delimiter)
+    local result = {}
+    local pattern = "(.-)" .. delimiter .. "()"
+    local currentPosition = 1
+    for part, position in string.gmatch(inputString, pattern) do
+        result[currentPosition] = part
+        currentPosition = currentPosition + 1
+    end
+    return result
+end
+
 return M
