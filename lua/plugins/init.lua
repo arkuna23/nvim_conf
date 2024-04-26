@@ -6,6 +6,7 @@ vim.api.nvim_create_autocmd("User", {
     callback = function()
         local function _trigger()
             vim.api.nvim_exec_autocmds("User", { pattern = "Load" })
+            utils.loaded = true
         end
 
         if vim.bo.filetype == "dashboard" then
@@ -19,7 +20,8 @@ vim.api.nvim_create_autocmd("User", {
     end,
 })
 
-local plugins = utils.mergeTables(
+local plugins = vim.tbl_extend(
+    'keep',
     require 'plugins.ui',
     require 'plugins.lsp'
 )

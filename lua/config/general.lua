@@ -10,3 +10,4 @@ opt.shiftround = true
 opt.expandtab = true
 
 opt.mouse = "a"
+opt.timeoutlen = 500
