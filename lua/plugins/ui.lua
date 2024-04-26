@@ -68,6 +68,33 @@ plugins['neo-tree'] = {
     end,
 }
 
+plugins['mini.bufremove'] = {
+  "echasnovski/mini.bufremove",
+
+  keys = {
+    {
+      "<leader>bd",
+      function()
+        local bd = require("mini.bufremove").delete
+        if vim.bo.modified then
+          local choice = vim.fn.confirm(("Save changes to %q?"):format(vim.fn.bufname()), "&Yes\n&No\n&Cancel")
+          if choice == 1 then -- Yes
+            vim.cmd.write()
+            bd(0)
+          elseif choice == 2 then -- No
+            bd(0, true)
+          end
+        else
+          bd(0)
+        end
+      end,
+      desc = "Delete Buffer",
+    },
+    -- stylua: ignore
+    { "<leader>bD", function() require("mini.bufremove").delete(0, true) end, desc = "Delete Buffer (Force)" },
+  },
+}
+
 plugins['bufferline'] = {
     "akinsho/bufferline.nvim",
     dependencies = {
@@ -76,8 +103,9 @@ plugins['bufferline'] = {
     event = "User Load",
     opts = {
         options = {
-            close_command = ":BufferLineClose %d",
-            right_mouse_command = ":BufferLineClose %d",
+                close_command = function(n) require("mini.bufremove").delete(n, false) end,
+        -- stylua: ignore
+                right_mouse_command = function(n) require("mini.bufremove").delete(n, false) end,
             separator_style = "thin",
             offsets = {
                 {
@@ -99,38 +127,27 @@ plugins['bufferline'] = {
         },
     },
     config = function(_, opts)
-        vim.api.nvim_create_user_command("BufferLineClose", function(buffer_line_opts)
-            local bufnr = 1 * buffer_line_opts.args
-            local buf_is_modified = vim.api.nvim_buf_get_option(bufnr, "modified")
-
-            local bdelete_arg
-            if bufnr == 0 then
-                bdelete_arg = ""
-            else
-                bdelete_arg = " " .. bufnr
-            end
-            local command = "bdelete!" .. bdelete_arg
-            if buf_is_modified then
-                local option = vim.fn.confirm("File is not saved. Close anyway?", "&Yes\n&No", 2)
-                if option == 1 then
-                    vim.cmd(command)
-                end
-            else
-                vim.cmd(command)
-            end
-        end, { nargs = 1 })
-
-        require("bufferline").setup(opts)
-    end,
+    require("bufferline").setup(opts)
+    -- Fix bufferline when restoring a session
+    vim.api.nvim_create_autocmd("BufAdd", {
+      callback = function()
+        vim.schedule(function()
+          pcall(nvim_bufferline)
+        end)
+      end,
+    })
+  end,
     keys = {
-        { "<leader>bc", "<Cmd>BufferLinePickClose<CR>",    desc = "pick close",           silent = true, noremap = true },
-        -- <esc> is added in case current buffer is the last
-        { "<leader>bd", "<Cmd>BufferLineClose 0<CR><ESC>", desc = "close current buffer", silent = true, noremap = true },
-        { "<leader>bh", "<Cmd>BufferLineCyclePrev<CR>",    desc = "prev buffer",          silent = true, noremap = true },
-        { "<leader>bl", "<Cmd>BufferLineCycleNext<CR>",    desc = "next buffer",          silent = true, noremap = true },
-        { "<leader>bo", "<Cmd>BufferLineCloseOthers<CR>",  desc = "close others",         silent = true, noremap = true },
-        { "<leader>bp", "<Cmd>BufferLinePick<CR>",         desc = "pick buffer",          silent = true, noremap = true },
-    },
+        { "<leader>bp", "<Cmd>BufferLineTogglePin<CR>", desc = "Toggle Pin" },
+        { "<leader>bP", "<Cmd>BufferLineGroupClose ungrouped<CR>", desc = "Delete Non-Pinned Buffers" },
+        { "<leader>bo", "<Cmd>BufferLineCloseOthers<CR>", desc = "Delete Other Buffers" },
+        { "<leader>br", "<Cmd>BufferLineCloseRight<CR>", desc = "Delete Buffers to the Right" },
+        { "<leader>bl", "<Cmd>BufferLineCloseLeft<CR>", desc = "Delete Buffers to the Left" },
+        { "<S-h>", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev Buffer" },
+        { "<S-l>", "<cmd>BufferLineCycleNext<cr>", desc = "Next Buffer" },
+        { "[b", "<cmd>BufferLineCyclePrev<cr>", desc = "Prev Buffer" },
+        { "]b", "<cmd>BufferLineCycleNext<cr>", desc = "Next Buffer" },
+}
 }
 
 plugins['lualine'] = {

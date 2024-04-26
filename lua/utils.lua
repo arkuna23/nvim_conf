@@ -13,7 +13,7 @@ end
 
 ---read file content into lines
 ---@param path string
----@return table
+---@return table | nil
 M.readFileLines = function(path)
     local file = io.open(path, "r")
     if not file then
@@ -59,7 +59,7 @@ string.padString = function(inputString, length, padding)
         return inputString
     else
         local spaces = length - strLength
-        return inputString .. string.rep(padding, spaces) -- 使用 string.rep 函数重复空格字符串，以补充到指定长度
+        return inputString .. string.rep(padding, spaces)
     end
 end
 
