@@ -3,6 +3,26 @@ local symbols = require("symbols")
 
 local plugins = {}
 
+local header = string.format(
+	[[
+
+
+ █████╗ ██████╗  ██████╗██╗  ██╗███╗   ██╗██╗   ██╗██╗███╗   ███╗
+██╔══██╗██╔══██╗██╔════╝██║  ██║████╗  ██║██║   ██║██║████╗ ████║
+███████║██████╔╝██║     ███████║██╔██╗ ██║██║   ██║██║██╔████╔██║
+██╔══██║██╔══██╗██║     ██╔══██║██║╚██╗██║╚██╗ ██╔╝██║██║╚██╔╝██║
+██║  ██║██║  ██║╚██████╗██║  ██║██║ ╚████║ ╚████╔╝ ██║██║ ╚═╝ ██║
+╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝╚═╝     ╚═╝
+                                                                 
+
+Hello, %s
+welcome to nvim on %s!
+
+]],
+	os.userName,
+	os.osName
+)
+
 plugins["dashboard"] = {
 	"nvimdev/dashboard-nvim",
 	lazy = false,
@@ -10,29 +30,41 @@ plugins["dashboard"] = {
 		theme = "doom",
 		config = {
 			-- https://patorjk.com/software/taag
-			header = utils.readFileLines(utils.configRoot .. "/header.txt"),
+			header = string.split(header, "\n"),
 			center = {
 				{
 					icon = "  ",
-					desc = "Lazy Profile",
-					action = "Lazy profile",
+					desc = "Lazy",
+					action = "Lazy",
 				},
 				{
 					icon = "  ",
-					desc = "Edit preferences",
-					action = string.format("edit %s/lua/custom/init.lua", utils.configRoot),
+					desc = "Edit config",
+					action = "Neotree " .. utils.configRoot,
 				},
 				{
-					icon = "  ",
-					desc = "Mason",
-					action = "Mason",
+					icon = "󰍉  ",
+					desc = "find files(Telescope)",
+					action = "Telescope find_files",
 				},
 				{
-					icon = "  ",
-					desc = "About Nvim",
-					action = "lua require('plugins.utils').about()",
+					icon = "󰑓  ",
+					desc = "Restore Session",
+					action = "RestoreSession",
+				},
+				{
+					icon = "󰈆  ",
+					desc = "Exit Neovim",
+					action = "qa",
 				},
 			},
+			footer = function()
+				local stats = require("lazy").stats()
+				local ms = math.floor(stats.startuptime * 100 + 0.5) / 100
+				return {
+					string.format("⚡ loaded %d/%d plugins in %.2f ms", stats.loaded, stats.count, ms),
+				}
+			end,
 		},
 	},
 	config = function(_, opts)
@@ -73,7 +105,7 @@ plugins["neo-tree"] = {
 	end,
 	config = function(_, opts)
 		require("neo-tree").setup(opts)
-		vim.o.laststatus = 3
+		-- vim.o.laststatus = 3
 	end,
 	keys = {
 		{ "ww", "<Cmd>Neotree focus<CR>", noremap = true, silent = true, desc = "focus NeoTree" },
@@ -154,11 +186,17 @@ plugins["bufferline"] = {
 			once = true,
 			callback = function()
 				vim.schedule(function()
-					vim.o.laststatus = 3
 					local res, err = pcall(nvim_bufferline)
 					if not res then
 						vim.notify(err)
 					end
+				end)
+			end,
+		})
+		vim.api.nvim_create_autocmd("BufAdd", {
+			callback = function()
+				vim.schedule(function()
+					vim.o.laststatus = 3
 				end)
 			end,
 		})
@@ -236,7 +274,7 @@ plugins["nvim-notify"] = {
 		},
 	},
 	opts = {
-		stages = "static",
+		stages = "slide",
 		timeout = 3000,
 		max_height = function()
 			return math.floor(vim.o.lines * 0.75)
@@ -334,6 +372,7 @@ plugins["which-key"] = {
 			["<leader>u"] = { name = "+utils" },
 			["<leader>x"] = { name = "+trouble" },
 			["<leader>t"] = { name = "+telescope" },
+			["<leader>q"] = { name = "+session" },
 		})
 	end,
 }

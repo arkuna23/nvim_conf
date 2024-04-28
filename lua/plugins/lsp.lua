@@ -456,7 +456,7 @@ plugins["nvim-cmp"] = {
 -- formatting
 plugins["conform"] = {
 	"stevearc/conform.nvim",
-	event = { "BufWritePre" },
+	event = { "User Load" },
 	cmd = { "ConformInfo" },
 	keys = {
 		{
@@ -475,7 +475,22 @@ plugins["conform"] = {
 		formatters_by_ft = {
 			lua = { "stylua" },
 			python = { "isort", "black" },
+			["javascriptreact"] = { "prettier" },
+			["typescriptreact"] = { "prettier" },
+			["vue"] = { "prettier" },
+			["css"] = { "prettier" },
+			["scss"] = { "prettier" },
+			["less"] = { "prettier" },
+			["html"] = { "prettier" },
+			["json"] = { "prettier" },
+			["jsonc"] = { "prettier" },
+			["yaml"] = { "prettier" },
+			["markdown"] = { "prettier" },
+			["markdown.mdx"] = { "prettier" },
+			["graphql"] = { "prettier" },
+			["handlebars"] = { "prettier" },
 			javascript = { { "prettierd", "prettier" } },
+			cs = { "csharpier" },
 		},
 		-- Set up format-on-save
 		format_on_save = { timeout_ms = 500, lsp_fallback = true },
