@@ -7,7 +7,7 @@ local vide = require("config.vide")
 local M = {}
 
 M.setup = function()
-	color.setup_colorscheme()
+	color.setup()
 	if vim.g.neovide then
 		vide.setup()
 	end

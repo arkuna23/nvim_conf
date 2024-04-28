@@ -116,6 +116,9 @@ lsp.config = {
 						telemetry = {
 							enable = false,
 						},
+						codeLens = {
+							enable = true,
+						},
 					},
 				},
 			})
@@ -272,6 +275,9 @@ plugins["mason"] = {
 				package_pending = symbols.Pending,
 				package_uninstalled = symbols.Negative,
 			},
+		},
+		codelens = {
+			enabled = false,
 		},
 	},
 	config = function(_, opts)
