@@ -7,6 +7,61 @@ lsp.flags = {
 	debounce_text_changes = 150,
 }
 
+lsp.keybindings = {
+	{ "<leader>cl", "<cmd>LspInfo<CR>", "n", "Lsp Info" }, -- Lsp Info
+	{ "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", "n", "Goto Definition" }, -- Goto Definition
+	{ "gr", "<cmd>Telescope lsp_references<CR>", "n", "References" }, -- References
+	{ "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", "n", "Goto Declaration" }, -- Goto Declaration
+	{ "gI", "<cmd>Telescope lsp_implementations<CR>", "n", "Goto Implementations" }, -- Goto Implementation
+	{ "gy", "<cmd>Telescope lsp_type_definitions<CR>", "n", "Goto Type Definitions" }, -- Goto Type Definition
+	{ "K", "<cmd>lua vim.lsp.buf.hover()<CR>", "n", "Hover" }, -- Hover
+	{ "gK", "<cmd>lua vim.lsp.buf.signature_help()<CR>", "n", "Signature Help" }, -- Signature Help
+	{ "<c-k>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", "i", "Signature Help (Insert mode)" }, -- Signature Help (Insert mode)
+	{ "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", "n,v", "Code Action" }, -- Code Action
+	{ "<leader>cc", "<cmd>lua vim.lsp.codelens.run()<CR>", "n,v", "Run Codelens" }, -- Run Codelens
+	{ "<leader>cC", "<cmd>lua vim.lsp.codelens.refresh()<CR>", "n", "Refresh & Display Codelens" }, -- Refresh & Display Codelens
+	{ "<leader>cA", "<cmd>lua vim.lsp.buf.source_action()<CR>", "n", "Source Action" }, -- Source Action
+	{ "<leader>cr", "<cmd>lua vim.lsp.buf.rename()<CR>", "n", "Rename" }, -- Rename
+}
+
+lsp.keyAttach = function(buffer)
+	for _, binding in ipairs(lsp.keybindings) do
+		local modes = vim.split(binding[3] or "n", ",") -- 默认模式为普通模式
+		local res, err = pcall(
+			vim.keymap.set,
+			modes,
+			binding[1],
+			binding[2],
+			{ noremap = true, silent = true, buffer = buffer, desc = binding[4] }
+		)
+		if not res then
+			vim.notify(err, vim.log.levels.ERROR)
+			return
+		end
+	end
+end
+
+lsp.treesitter = {
+	"c",
+	"c_sharp",
+	"cpp",
+	"css",
+	"html",
+	"javascript",
+	"json",
+	"json5",
+	"jsonc",
+	"lua",
+	"python",
+	"rust",
+	"ron",
+	"toml",
+	"typescript",
+	"tsx",
+	"vim",
+	"ninja",
+}
+
 lsp.ensure_installed = {
 	"clangd",
 	"css-lsp",
@@ -23,6 +78,7 @@ lsp.ensure_installed = {
 	"prettier",
 	"shfmt",
 	"stylua",
+	"pyright",
 }
 
 lsp.config = {
@@ -33,7 +89,7 @@ lsp.config = {
 			on_attach = function(client, bufnr)
 				client.server_capabilities.documentFormattingProvider = false
 				client.server_capabilities.documentRangeFormattingProvider = false
-				-- lsp.keyAttach(bufnr)
+				lsp.keyAttach(bufnr)
 			end,
 		}
 	end,
@@ -99,7 +155,7 @@ lsp.config = {
 						client.stop()
 					else
 						lsp.disableFormat(client)
-						lsp.keyAttach(bufnr)
+						require("lazyvim.plugins.lsp.keymaps").on_attach(client, bufnr)
 					end
 				end,
 			}
@@ -114,10 +170,32 @@ lsp.config = {
 		end,
 	},
 	{ "clangd" },
+	{ "pyright" },
+	{
+		"jsonls",
+		conf = function()
+			return {
+				-- lazy-load schemastore when needed
+				on_new_config = function(new_config)
+					new_config.settings.json.schemas = new_config.settings.json.schemas or {}
+					vim.list_extend(new_config.settings.json.schemas, require("schemastore").json.schemas())
+				end,
+				settings = {
+					json = {
+						format = {
+							enable = true,
+						},
+						validate = { enable = true },
+					},
+				},
+			}
+		end,
+	},
 }
 
 local plugins = {}
 
+-- lsp config
 plugins["nvim-treesitter"] = {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
@@ -126,21 +204,7 @@ plugins["nvim-treesitter"] = {
 	pin = true,
 	main = "nvim-treesitter",
 	opts = {
-		ensure_installed = {
-			"c",
-			"c_sharp",
-			"cpp",
-			"css",
-			"html",
-			"javascript",
-			"json",
-			"lua",
-			"python",
-			"rust",
-			"typescript",
-			"tsx",
-			"vim",
-		},
+		ensure_installed = lsp.treesitter,
 		highlight = {
 			enable = true,
 			additional_vim_regex_highlighting = false,
@@ -274,6 +338,7 @@ plugins["mason"] = {
 	end,
 }
 
+-- completion
 plugins["nvim-autopairs"] = {
 	"windwp/nvim-autopairs",
 	event = "InsertEnter",
@@ -388,6 +453,7 @@ plugins["nvim-cmp"] = {
 	end,
 }
 
+-- formatting
 plugins["conform"] = {
 	"stevearc/conform.nvim",
 	event = { "BufWritePre" },
@@ -424,6 +490,69 @@ plugins["conform"] = {
 		-- If you want the formatexpr, here is the place to set it
 		vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
 	end,
+}
+
+-- rust
+plugins["rustaceanvim"] = {
+	"mrcjkb/rustaceanvim",
+	version = "^4", -- Recommended
+	ft = { "rust" },
+	opts = {
+		server = {
+			on_attach = function(_, bufnr)
+				vim.keymap.set("n", "<leader>cR", function()
+					vim.cmd.RustLsp("codeAction")
+				end, { desc = "Code Action", buffer = bufnr })
+				vim.keymap.set("n", "<leader>dr", function()
+					vim.cmd.RustLsp("debuggables")
+				end, { desc = "Rust Debuggables", buffer = bufnr })
+			end,
+			default_settings = {
+				-- rust-analyzer language server configuration
+				["rust-analyzer"] = {
+					cargo = {
+						allFeatures = true,
+						loadOutDirsFromCheck = true,
+						runBuildScripts = true,
+					},
+					-- Add clippy lints for Rust.
+					checkOnSave = {
+						allFeatures = true,
+						command = "clippy",
+						extraArgs = { "--no-deps" },
+					},
+					procMacro = {
+						enable = true,
+						ignored = {
+							["async-trait"] = { "async_trait" },
+							["napi-derive"] = { "napi" },
+							["async-recursion"] = { "async_recursion" },
+						},
+					},
+				},
+			},
+		},
+	},
+	config = function(_, opts)
+		vim.g.rustaceanvim = vim.tbl_deep_extend("keep", vim.g.rustaceanvim or {}, opts or {})
+	end,
+}
+
+plugins["crates"] = {
+	"Saecki/crates.nvim",
+	event = { "BufRead Cargo.toml" },
+	opts = {
+		src = {
+			cmp = { enabled = true },
+		},
+	},
+}
+
+--json
+plugins["SchemaStore"] = {
+	"b0o/SchemaStore.nvim",
+	lazy = true,
+	version = false, -- last release is way too old
 }
 
 return plugins

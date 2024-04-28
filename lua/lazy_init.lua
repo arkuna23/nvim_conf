@@ -1,5 +1,3 @@
-require 'config.init'
-
 -- clone lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 
@@ -11,24 +9,27 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
 
-require('lazy').setup(require 'plugins.init', {
-    performance = {
-        rtp = {
-            disabled_plugins = {
-                "editorconfig",
-                "gzip",
-                "matchit",
-                "matchparen",
-                "netrwPlugin",
-                "shada",
-                "tarPlugin",
-                "tohtml",
-                "tutor",
-                "zipPlugin",
-            },
-        },
-    },
-    ui = {
-        backdrop = 60,
-    },
+local config = require("config.init")
+require("lazy").setup(require("plugins.init"), {
+	performance = {
+		rtp = {
+			disabled_plugins = {
+				"editorconfig",
+				"gzip",
+				"matchit",
+				"matchparen",
+				"netrwPlugin",
+				"shada",
+				"tarPlugin",
+				"tohtml",
+				"tutor",
+				"zipPlugin",
+			},
+		},
+	},
+	ui = {
+		backdrop = 60,
+	},
 })
+
+config.setup()

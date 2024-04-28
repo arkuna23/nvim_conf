@@ -1,28 +1,24 @@
-local utils = require 'utils'
+local utils = require("utils")
+
+function TriggerUserLoad()
+	vim.api.nvim_exec_autocmds("User", { pattern = "Load" })
+	utils.loaded = true
+end
 
 -- User Load: triggered when editing a file
 vim.api.nvim_create_autocmd("User", {
-    pattern = "VeryLazy",
-    callback = function()
-        local function _trigger()
-            vim.api.nvim_exec_autocmds("User", { pattern = "Load" })
-            utils.loaded = true
-        end
-
-        if vim.bo.filetype == "dashboard" then
-            vim.api.nvim_create_autocmd("BufRead", {
-                once = true,
-                callback = _trigger,
-            })
-        else
-            _trigger()
-        end
-    end,
+	pattern = "VeryLazy",
+	callback = function()
+		if vim.bo.filetype == "dashboard" then
+			vim.api.nvim_create_autocmd("BufRead", {
+				once = true,
+				callback = TriggerUserLoad,
+			})
+		else
+			TriggerUserLoad()
+		end
+	end,
 })
 
-local plugins = vim.tbl_extend(
-    'keep',
-    require 'plugins.ui',
-    require 'plugins.lsp'
-)
+local plugins = vim.tbl_extend("keep", require("plugins.ui"), require("plugins.lsp"), require("plugins.colorschemes"))
 return utils.table2array(plugins)
