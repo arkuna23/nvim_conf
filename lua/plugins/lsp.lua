@@ -57,6 +57,7 @@ lsp.treesitter = {
 	"ron",
 	"toml",
 	"typescript",
+	"bash",
 	"tsx",
 	"vim",
 	"ninja",
@@ -77,8 +78,10 @@ lsp.ensure_installed = {
 	"fixjson",
 	"prettier",
 	"shfmt",
+	"shellcheck",
 	"stylua",
 	"pyright",
+	"bash-language-server",
 }
 
 lsp.config = {
@@ -200,6 +203,7 @@ lsp.config = {
 			}
 		end,
 	},
+	{ "bashls" },
 }
 
 local plugins = {}
