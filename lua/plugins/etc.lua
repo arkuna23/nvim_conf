@@ -1,5 +1,6 @@
 local plugins = {}
 
+-- session manager
 plugins["persistence"] = {
 	"folke/persistence.nvim",
 	event = "User Load",
@@ -31,6 +32,29 @@ plugins["persistence"] = {
 				require("persistence").stop()
 			end,
 			desc = "Don't Save Current Session",
+		},
+	},
+}
+
+plugins["wakatime"] = {
+	"wakatime/vim-wakatime",
+	event = "User Load",
+	cmd = "WakaTimeApiKey",
+}
+
+plugins["copilot"] = {
+	"zbirenbaum/copilot.lua",
+	cmd = "Copilot",
+	build = ":Copilot auth",
+	opts = {
+		suggestion = { enabled = false },
+		panel = { enabled = false },
+		filetypes = {
+			markdown = true,
+			help = true,
+			lua = true,
+			python = true,
+			rust = true,
 		},
 	},
 }

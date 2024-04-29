@@ -1,5 +1,5 @@
 local symbols = require("symbols")
-local utils = require("utils")
+require("utils")
 
 local lsp = {}
 
@@ -9,7 +9,7 @@ lsp.flags = {
 
 lsp.keybindings = {
 	{ "<leader>cl", "<cmd>LspInfo<CR>", "n", "Lsp Info" }, -- Lsp Info
-	{ "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", "n", "Goto Definition" }, -- Goto Definition
+	{ "gd", "<cmd>Telescope lsp_definitions<CR>", "n", "Goto Definitions" }, -- Goto Definition
 	{ "gr", "<cmd>Telescope lsp_references<CR>", "n", "References" }, -- References
 	{ "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", "n", "Goto Declaration" }, -- Goto Declaration
 	{ "gI", "<cmd>Telescope lsp_implementations<CR>", "n", "Goto Implementations" }, -- Goto Implementation
@@ -86,10 +86,16 @@ lsp.config = {
 		return {
 			capabilities = require("cmp_nvim_lsp").default_capabilities(),
 			flags = lsp.flags,
+			-- default attach actions
 			on_attach = function(client, bufnr)
 				client.server_capabilities.documentFormattingProvider = false
 				client.server_capabilities.documentRangeFormattingProvider = false
 				lsp.keyAttach(bufnr)
+
+				-- copilot
+				if client.name == "copilot" then
+					require("copilot_cmp")._on_insert_enter({})
+				end
 			end,
 		}
 	end,
@@ -363,6 +369,12 @@ plugins["nvim-cmp"] = {
 		"hrsh7th/cmp-cmdline",
 		"rafamadriz/friendly-snippets",
 		"onsails/lspkind-nvim",
+		-- copilot
+		{
+			"zbirenbaum/copilot-cmp",
+			dependencies = "copilot.lua",
+			opts = {},
+		},
 	},
 	event = { "InsertEnter", "CmdlineEnter" },
 	config = function()
@@ -396,10 +408,12 @@ plugins["nvim-cmp"] = {
 				Event = symbols.Event,
 				Operator = symbols.Operator,
 				TypeParameter = symbols.TypeParameter,
+				Copilot = symbols.Copilot,
 			},
 		})
 
 		local cmp = require("cmp")
+		---@diagnostic disable-next-line: redundant-parameter
 		cmp.setup({
 			snippet = {
 				expand = function(args)
@@ -409,6 +423,7 @@ plugins["nvim-cmp"] = {
 			sources = cmp.config.sources({
 				{ name = "nvim_lsp" },
 				{ name = "luasnip" },
+				{ name = "copilot", priority = 100 },
 			}, {
 				{ name = "buffer" },
 				{ name = "path" },
@@ -433,11 +448,12 @@ plugins["nvim-cmp"] = {
 			formatting = {
 				format = lspkind.cmp_format({
 					mode = "symbol",
-					maxwidth = 50,
+					maxwidth = 30,
 				}),
 			},
 		})
 
+		---@diagnostic disable-next-line: undefined-field
 		cmp.setup.cmdline({ "/", "?" }, {
 			mapping = cmp.mapping.preset.cmdline(),
 			sources = {
@@ -445,6 +461,7 @@ plugins["nvim-cmp"] = {
 			},
 		})
 
+		---@diagnostic disable-next-line: undefined-field
 		cmp.setup.cmdline(":", {
 			mapping = cmp.mapping.preset.cmdline(),
 			sources = cmp.config.sources({

@@ -56,5 +56,5 @@ return {
 	Value = "󰎠 ",
 	Variable = "󰀫 ",
 	Warn = " ",
+	Copilot = " ",
 }
-

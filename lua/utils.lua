@@ -63,7 +63,7 @@ string.padString = function(inputString, length, padding)
 	end
 end
 
---- comment
+--- trim ending whitespace
 --- @param inputString string
 --- @return string
 string.trimEnd = function(inputString)
@@ -81,6 +81,19 @@ end)()
 os.userName = (function()
 	return os.getenv("USER")
 end)()
+
+M.getStartupStats = function()
+	if not M._startupStats then
+		local stats = require("lazy").stats()
+		M._startupStats = {
+			timeMs = math.floor(stats.startuptime * 100 + 0.5) / 100,
+			loaded = stats.loaded,
+			total = stats.count,
+		}
+	end
+
+	return M._startupStats
+end
 
 M.loaded = false
 

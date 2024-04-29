@@ -59,10 +59,14 @@ plugins["dashboard"] = {
 				},
 			},
 			footer = function()
-				local stats = require("lazy").stats()
-				local ms = math.floor(stats.startuptime * 100 + 0.5) / 100
+				local stats = require("utils").getStartupStats()
 				return {
-					string.format("⚡ loaded %d/%d plugins in %.2f ms", stats.loaded, stats.count, ms),
+					string.format(
+						"⚡ loaded %d/%d plugins in %.2f ms on startup",
+						stats.loaded,
+						stats.total,
+						stats.timeMs
+					),
 				}
 			end,
 		},
