@@ -9,7 +9,7 @@ local env_get_or_default = function(key, default)
 end
 
 M.setup = function()
-	vim.o.guifont = env_get_or_default("CODE_FONT", "JetBrainsMono Nerd Font Mono") .. ":h13"
+	vim.o.guifont = env_get_or_default("CODE_FONT", "JetBrainsMono Nerd Font Mono") .. ":h11"
 	vim.g.neovide_transparency = tonumber(env_get_or_default("BG_ALPHA1", 0.8))
 	vim.g.transparency = tonumber(env_get_or_default("BG_ALPHA1", 0.8))
 	vim.g.neovide_cursor_vfx_mode = "wireframe"

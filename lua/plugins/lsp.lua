@@ -82,6 +82,7 @@ lsp.ensure_installed = {
 	"stylua",
 	"pyright",
 	"bash-language-server",
+	"codelldb",
 }
 
 lsp.config = {
@@ -539,6 +540,7 @@ plugins["rustaceanvim"] = {
 	"mrcjkb/rustaceanvim",
 	version = "^4", -- Recommended
 	ft = { "rust" },
+	build = "rustup component add rust-analyzer",
 	opts = {
 		server = {
 			on_attach = function(_, bufnr)
