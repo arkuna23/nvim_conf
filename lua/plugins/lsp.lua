@@ -7,25 +7,51 @@ lsp.flags = {
 	debounce_text_changes = 150,
 }
 
-lsp.keybindings = {
-	{ "<leader>cl", "<cmd>LspInfo<CR>", "n", "Lsp Info" }, -- Lsp Info
-	{ "gd", "<cmd>Telescope lsp_definitions<CR>", "n", "Goto Definitions" }, -- Goto Definition
-	{ "gr", "<cmd>Telescope lsp_references<CR>", "n", "References" }, -- References
-	{ "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", "n", "Goto Declaration" }, -- Goto Declaration
-	{ "gI", "<cmd>Telescope lsp_implementations<CR>", "n", "Goto Implementations" }, -- Goto Implementation
-	{ "gy", "<cmd>Telescope lsp_type_definitions<CR>", "n", "Goto Type Definitions" }, -- Goto Type Definition
-	{ "K", "<cmd>lua vim.lsp.buf.hover()<CR>", "n", "Hover" }, -- Hover
-	{ "gK", "<cmd>lua vim.lsp.buf.signature_help()<CR>", "n", "Signature Help" }, -- Signature Help
-	{ "<c-k>", "<cmd>lua vim.lsp.buf.signature_help()<CR>", "i", "Signature Help (Insert mode)" }, -- Signature Help (Insert mode)
-	{ "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", "n,v", "Code Action" }, -- Code Action
-	{ "<leader>cc", "<cmd>lua vim.lsp.codelens.run()<CR>", "n,v", "Run Codelens" }, -- Run Codelens
-	{ "<leader>cC", "<cmd>lua vim.lsp.codelens.refresh()<CR>", "n", "Refresh & Display Codelens" }, -- Refresh & Display Codelens
-	{ "<leader>cA", "<cmd>lua vim.lsp.buf.source_action()<CR>", "n", "Source Action" }, -- Source Action
-	{ "<leader>cr", "<cmd>lua vim.lsp.buf.rename()<CR>", "n", "Rename" }, -- Rename
+lsp.defaultKeybindings = {
+	["lsp_info"] = { "<leader>cl", "<cmd>LspInfo<CR>", "n", "Lsp Info" }, -- Lsp Info
+	["definitions"] = { "gd", "<cmd>Telescope lsp_definitions<CR>", "n", "Goto Definitions" }, -- Goto Definition
+	["references"] = { "gr", "<cmd>Telescope lsp_references<CR>", "n", "References" }, -- References
+	["declaration"] = { "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", "n", "Goto Declaration" }, -- Goto Declaration
+	["type_implementations"] = { "gI", "<cmd>Telescope lsp_implementations<CR>", "n", "Goto Implementations" }, -- Goto Implementation
+	["type_definitions"] = { "gy", "<cmd>Telescope lsp_type_definitions<CR>", "n", "Goto Type Definitions" }, -- Goto Type Definition
+	["hover"] = { "K", "<cmd>lua vim.lsp.buf.hover()<CR>", "n", "Hover" }, -- Hover
+	["signature_help"] = { "gK", "<cmd>lua vim.lsp.buf.signature_help()<CR>", "n", "Signature Help" }, -- Signature Help
+	["signature_help_insert"] = {
+		"<c-k>",
+		"<cmd>lua vim.lsp.buf.signature_help()<CR>",
+		"i",
+		"Signature Help (Insert mode)",
+	}, -- Signature Help (Insert mode)
+	["code_action"] = { "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", "n,v", "Code Action" }, -- Code Action
+	["run_codelens"] = { "<leader>cc", "<cmd>lua vim.lsp.codelens.run()<CR>", "n,v", "Run Codelens" }, -- Run Codelens
+	["refresh_codelens"] = {
+		"<leader>cC",
+		"<cmd>lua vim.lsp.codelens.refresh()<CR>",
+		"n",
+		"Refresh & Display Codelens",
+	}, -- Refresh & Display Codelens
+	["source_action"] = { "<leader>cA", "<cmd>lua vim.lsp.buf.source_action()<CR>", "n", "Source Action" }, -- Source Action
+	["rename"] = { "<leader>cr", "<cmd>lua vim.lsp.buf.rename()<CR>", "n", "Rename" }, -- Rename
+	["document_diagnostic"] = {
+		"<leader>xx",
+		"<cmd>TroubleToggle document_diagnostics<CR>",
+		"n",
+		"Document Diagnostics",
+	}, -- Document Diagnostics
+	["workspace_diagnostic"] = {
+		"<leader>xX",
+		"<cmd>TroubleToggle workspace_diagnostics<CR>",
+		"n",
+		"Workspace Diagnostics",
+	}, -- Workspace Diagnostics
 }
 
-lsp.keyAttach = function(buffer)
-	for _, binding in ipairs(lsp.keybindings) do
+lsp.mergeKeybindings = function(newKeybindings)
+	return vim.tbl_extend("force", lsp.defaultKeybindings, newKeybindings)
+end
+
+lsp.keyAttach = function(buffer, keybindings)
+	for _, binding in pairs(keybindings) do
 		local modes = vim.split(binding[3] or "n", ",") -- 默认模式为普通模式
 		local res, err = pcall(
 			vim.keymap.set,
@@ -94,7 +120,7 @@ lsp.config = {
 			on_attach = function(client, bufnr)
 				client.server_capabilities.documentFormattingProvider = false
 				client.server_capabilities.documentRangeFormattingProvider = false
-				lsp.keyAttach(bufnr)
+				lsp.keyAttach(bufnr, lsp.defaultKeybindings)
 
 				-- copilot
 				if client.name == "copilot" then
@@ -544,12 +570,7 @@ plugins["rustaceanvim"] = {
 	opts = {
 		server = {
 			on_attach = function(_, bufnr)
-				vim.keymap.set("n", "<leader>cR", function()
-					vim.cmd.RustLsp("codeAction")
-				end, { desc = "Code Action", buffer = bufnr })
-				vim.keymap.set("n", "<leader>dr", function()
-					vim.cmd.RustLsp("debuggables")
-				end, { desc = "Rust Debuggables", buffer = bufnr })
+				lsp.keyAttach(bufnr, lsp.defaultKeybindings)
 			end,
 			default_settings = {
 				-- rust-analyzer language server configuration

@@ -368,52 +368,23 @@ plugins["which-key"] = {
 	},
 	config = function(_, opts)
 		local wk = require("which-key")
-		wk.setup(opts)
 		wk.register({
 			["<leader>b"] = { name = "+buffer" },
 			["<leader>c"] = { name = "+lsp" },
-			["<leader>sn"] = { name = "+noice" },
-			["<leader>u"] = { name = "+utils" },
-			["<leader>x"] = { name = "+trouble" },
+			["<leader>x"] = { name = "+diagnostics" },
 			["<leader>t"] = { name = "+telescope" },
+			["<leader>u"] = { name = "+utils" },
+			["<leader>sn"] = { name = "+noice" },
 			["<leader>q"] = { name = "+session" },
 		})
+		wk.setup(opts)
 	end,
 }
 
 plugins["trouble"] = {
 	"folke/trouble.nvim",
+	cmd = "TroubleToggle",
 	dependencies = { "nvim-tree/nvim-web-devicons" },
-	keys = {
-		{
-			"<leader>xx",
-			function()
-				require("trouble").toggle("document_diagnostics")
-			end,
-			desc = "Diagnostics (Trouble)",
-		},
-		{
-			"<leader>xX",
-			function()
-				require("trouble").toggle("workspace_diagnostics")
-			end,
-			desc = "Workspace Diagnostics (Trouble)",
-		},
-		{
-			"[q",
-			function()
-				if require("trouble").is_open() then
-					require("trouble").prev({ skip_groups = true, jump = true })
-				else
-					local ok, err = pcall(vim.cmd.cprev)
-					if not ok then
-						vim.notify(err, vim.log.levels.ERROR)
-					end
-				end
-			end,
-			desc = "Previous Trouble/Quickfix Item",
-		},
-	},
 }
 
 plugins["telescope"] = {
