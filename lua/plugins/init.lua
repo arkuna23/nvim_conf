@@ -1,8 +1,8 @@
 local utils = require("utils")
 
-function TriggerUserLoad()
+local function trigger_user_load()
 	vim.api.nvim_exec_autocmds("User", { pattern = "Load" })
-	utils.loaded = true
+	utils.nvim_loaded = true
 end
 
 -- User Load: triggered when editing a file
@@ -12,10 +12,10 @@ vim.api.nvim_create_autocmd("User", {
 		if vim.bo.filetype == "dashboard" then
 			vim.api.nvim_create_autocmd("BufRead", {
 				once = true,
-				callback = TriggerUserLoad,
+				callback = trigger_user_load,
 			})
 		else
-			TriggerUserLoad()
+			trigger_user_load()
 		end
 	end,
 })

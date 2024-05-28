@@ -14,7 +14,7 @@ end
 ---read file content into lines
 ---@param path string
 ---@return table | nil
-M.readFileLines = function(path)
+M.read_file_lines = function(path)
 	local file = io.open(path, "r")
 	if not file then
 		return nil
@@ -49,7 +49,7 @@ end
 ---@param length number
 ---@param padding string
 ---@return string | nil
-string.padString = function(inputString, length, padding)
+string.pad_string = function(inputString, length, padding)
 	if #padding ~= 1 then
 		return nil
 	end
@@ -66,23 +66,23 @@ end
 --- trim ending whitespace
 --- @param inputString string
 --- @return string
-string.trimEnd = function(inputString)
+string.trim_end = function(inputString)
 	local result, _ = inputString:gsub("[ \r\n]*$", "")
 	return result
 end
 
-os.osName = (function()
+os.osname = (function()
 	local file = io.popen("cat /etc/*-release | grep '^PRETTY_NAME=' | awk -F'=' '{print $2}' | tr -d '\"'")
 	local distro = file:read("*a")
 	file:close()
-	return string.trimEnd(distro)
+	return string.trim_end(distro)
 end)()
 
-os.userName = (function()
+os.username = (function()
 	return os.getenv("USER")
 end)()
 
-M.getStartupStats = function()
+M.get_startup_stats = function()
 	if not M._startupStats then
 		local stats = require("lazy").stats()
 		M._startupStats = {
@@ -95,6 +95,6 @@ M.getStartupStats = function()
 	return M._startupStats
 end
 
-M.loaded = false
+M.nvim_loaded = false
 
 return M

@@ -19,8 +19,8 @@ Hello, %s
 welcome to nvim on %s!
 
 ]],
-	os.userName,
-	os.osName
+	os.username,
+	os.osname
 )
 
 plugins["dashboard"] = {
@@ -59,7 +59,7 @@ plugins["dashboard"] = {
 				},
 			},
 			footer = function()
-				local stats = require("utils").getStartupStats()
+				local stats = require("utils").get_startup_stats()
 				return {
 					string.format(
 						"⚡ loaded %d/%d plugins in %.2f ms on startup",
