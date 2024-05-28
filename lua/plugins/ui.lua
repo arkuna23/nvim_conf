@@ -168,10 +168,6 @@ plugins["bufferline"] = {
 	event = "User Load",
 	opts = {
 		highlights = {
-			fill = {
-				fg = "",
-				bg = "#0c253c",
-			},
 			buffer_selected = {
 				fg = "",
 				bg = "#2A3458",
