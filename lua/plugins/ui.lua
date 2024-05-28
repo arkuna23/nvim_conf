@@ -87,18 +87,29 @@ plugins["neo-tree"] = {
 		"nvim-lualine/lualine.nvim",
 		"akinsho/bufferline.nvim",
 	},
-	opts = {
-		auto_open = true,
-		update_to_buf_dir = {
-			enable = true,
-			auto_open = true,
-		},
-		view = {
-			width = 30,
-			side = "left",
-			auto_resize = true,
-		},
-	},
+	opts = function(_, opts)
+		opts.close_if_last_window = true
+		opts.default_component_configs = {
+			indent = {
+				with_expanders = true, -- if nil and file nesting is enabled, will enable expanders
+				expander_collapsed = "",
+				expander_expanded = "",
+				expander_highlight = "NeoTreeExpander",
+			},
+			git_status = {
+				symbols = {
+					unstaged = "󰄱",
+					staged = "󰱒",
+				},
+			},
+		}
+		opts.filesystem = {
+			filtered_items = {
+				hide_gitignored = false,
+				hide_dotfiles = false,
+			},
+		}
+	end,
 	init = function()
 		if vim.fn.argc(-1) == 1 then
 			local stat = vim.uv.fs_stat(vim.fn.argv(0))
@@ -156,6 +167,18 @@ plugins["bufferline"] = {
 	},
 	event = "User Load",
 	opts = {
+		highlights = {
+			fill = {
+				fg = "",
+				bg = "#0c253c",
+			},
+			buffer_selected = {
+				fg = "",
+				bg = "#2A3458",
+				bold = true,
+				italic = true,
+			},
+		},
 		options = {
 			close_command = function(n)
 				require("mini.bufremove").delete(n, false)
