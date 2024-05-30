@@ -87,6 +87,8 @@ lsp.treesitter = {
 	"tsx",
 	"vim",
 	"ninja",
+	"markdown",
+	"markdown_inline",
 }
 
 lsp.ensure_installed = {
@@ -109,6 +111,8 @@ lsp.ensure_installed = {
 	"pyright",
 	"bash-language-server",
 	"codelldb",
+	"markdownlint",
+	"marksman",
 }
 
 lsp.config = {
@@ -231,6 +235,7 @@ lsp.config = {
 		end,
 	},
 	{ "bashls" },
+	{ "marksman" },
 }
 
 local formatter = {}
@@ -248,14 +253,14 @@ formatter.ft = {
 	["json"] = { "prettier" },
 	["jsonc"] = { "prettier" },
 	["yaml"] = { "prettier" },
-	["markdown"] = { "prettier" },
-	["markdown.mdx"] = { "prettier" },
 	["graphql"] = { "prettier" },
 	["handlebars"] = { "prettier" },
 	javascript = { { "prettierd", "prettier" } },
 	cs = { "astyle" },
 	c = { "astyle" },
 	cpp = { "astyle" },
+	["markdown"] = { { "prettierd", "prettier" }, "markdownlint", "markdown-toc" },
+	["markdown.mdx"] = { { "prettierd", "prettier" }, "markdownlint", "markdown-toc" },
 }
 
 formatter.config = {
@@ -411,8 +416,6 @@ plugins["mason"] = {
 		vim.api.nvim_command("LspStart")
 	end,
 }
-
--- completion
 plugins["nvim-autopairs"] = {
 	"windwp/nvim-autopairs",
 	event = "InsertEnter",
@@ -687,6 +690,53 @@ plugins["SchemaStore"] = {
 	"b0o/SchemaStore.nvim",
 	lazy = true,
 	version = false, -- last release is way too old
+}
+
+plugins["markdown-preview"] = {
+	"iamcco/markdown-preview.nvim",
+	cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+	build = function()
+		vim.fn["mkdp#util#install"]()
+	end,
+	keys = {
+		{
+			"<leader>mp",
+			ft = "markdown",
+			"<cmd>MarkdownPreviewToggle<cr>",
+			desc = "Markdown Preview",
+		},
+	},
+	config = function()
+		vim.cmd([[do FileType]])
+	end,
+}
+
+plugins["headlines"] = {
+	"lukas-reineke/headlines.nvim",
+	opts = function()
+		local opts = {}
+		for _, ft in ipairs({ "markdown", "norg", "rmd", "org" }) do
+			opts[ft] = {
+				headline_highlights = {},
+				-- disable bullets for now. See https://github.com/lukas-reineke/headlines.nvim/issues/66
+				bullets = {},
+			}
+			for i = 1, 6 do
+				local hl = "Headline" .. i
+				vim.api.nvim_set_hl(0, hl, { link = "Headline", default = true })
+				table.insert(opts[ft].headline_highlights, hl)
+			end
+		end
+		return opts
+	end,
+	ft = { "markdown", "norg", "rmd", "org" },
+	config = function(_, opts)
+		-- PERF: schedule to prevent headlines slowing down opening a file
+		vim.schedule(function()
+			require("headlines").setup(opts)
+			require("headlines").refresh()
+		end)
+	end,
 }
 
 return plugins

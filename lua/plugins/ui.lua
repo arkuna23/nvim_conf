@@ -439,6 +439,7 @@ plugins["which-key"] = {
 			["<leader>u"] = { name = "+utils" },
 			["<leader>n"] = { name = "+noice" },
 			["<leader>q"] = { name = "+session" },
+			["<leader>m"] = { name = "+markdown" },
 			["gs"] = { name = "surround" },
 		})
 		wk.setup(opts)
