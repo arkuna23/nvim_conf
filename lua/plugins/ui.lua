@@ -121,7 +121,8 @@ plugins["neo-tree"] = {
 		require("neo-tree").setup(opts)
 	end,
 	keys = {
-		{ "ww", "<Cmd>Neotree focus<CR>", noremap = true, silent = true, desc = "focus NeoTree" },
+		{ "<leader>ee", "<Cmd>Neotree focus<CR>", noremap = true, silent = true, desc = "focus NeoTree" },
+		{ "<leader>et", "<Cmd>Neotree toggle<CR>", noremap = true, silent = true, desc = "toggle NeoTree" },
 	},
 }
 
