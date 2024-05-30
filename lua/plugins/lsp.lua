@@ -438,6 +438,26 @@ plugins["nvim-cmp"] = {
 			opts = {},
 		},
 	},
+	keys = {
+		{
+			"<Tab>",
+			function()
+				return vim.snippet.active({ direction = 1 }) and "<cmd>lua vim.snippet.jump(1)<cr>" or "<Tab>"
+			end,
+			expr = true,
+			silent = true,
+			mode = { "i", "s" },
+		},
+		{
+			"<S-Tab>",
+			function()
+				return vim.snippet.active({ direction = -1 }) and "<cmd>lua vim.snippet.jump(-1)<cr>" or "<Tab>"
+			end,
+			expr = true,
+			silent = true,
+			mode = { "i", "s" },
+		},
+	},
 	event = { "InsertEnter", "CmdlineEnter" },
 	config = function()
 		local lspkind = require("lspkind")
@@ -536,6 +556,31 @@ plugins["nvim-cmp"] = {
 		local cmp_autopairs = require("nvim-autopairs.completion.cmp")
 		cmp.event:on("confirm_done", cmp_autopairs.on_confirm_done({ map_char = { tex = "" } }))
 	end,
+}
+
+plugins["mini-surround"] = {
+	"echasnovski/mini.surround",
+	recommended = true,
+	keys = {
+		{ "gsa", desc = "Add Surrounding", mode = { "n", "v" } },
+		{ "gsd", desc = "Delete Surrounding" },
+		{ "gsf", desc = "Find Right Surrounding" },
+		{ "gsF", desc = "Find Left Surrounding" },
+		{ "gsh", desc = "Highlight Surrounding" },
+		{ "gsr", desc = "Replace Surrounding" },
+		{ "gsn", desc = "Update `MiniSurround.config.n_lines`" },
+	},
+	opts = {
+		mappings = {
+			add = "gsa", -- Add surrounding in Normal and Visual modes
+			delete = "gsd", -- Delete surrounding
+			find = "gsf", -- Find surrounding (to the right)
+			find_left = "gsF", -- Find surrounding (to the left)
+			highlight = "gsh", -- Highlight surrounding
+			replace = "gsr", -- Replace surrounding
+			update_n_lines = "gsn", -- Update `n_lines`
+		},
+	},
 }
 
 -- formatting

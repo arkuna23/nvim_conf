@@ -74,7 +74,6 @@ plugins["dashboard"] = {
 	config = function(_, opts)
 		require("dashboard").setup(opts)
 		vim.cmd("colorscheme " .. COLORSCHEME)
-		vim.o.laststatus = 3
 
 		if vim.fn.argc(-1) == 1 then
 			local stat = vim.uv.fs_stat(vim.fn.argv(0))
@@ -82,6 +81,7 @@ plugins["dashboard"] = {
 				require("neo-tree")
 			end
 		end
+		vim.o.laststatus = 3
 	end,
 }
 
@@ -178,16 +178,8 @@ plugins["bufferline"] = {
 	event = "User Load",
 	opts = {
 		highlights = {
-<<<<<<< HEAD
-			buffer_selected = {
-				fg = "",
-				bg = "#2A3458",
-				bold = true,
-				italic = true,
-=======
 			fill = {
 				bg = "",
->>>>>>> 1d8e366 (c and cpp formatter)
 			},
 			background = bufferline_theme.normal,
 			buffer_visible = bufferline_theme.visible,
@@ -215,6 +207,12 @@ plugins["bufferline"] = {
 			duplicate_selected = bufferline_theme.selected,
 			duplicate_visible = bufferline_theme.visible,
 			duplicate = bufferline_theme.normal,
+			hint = bufferline_theme.normal,
+			hint_visible = bufferline_theme.visible,
+			hint_selected = bufferline_theme.selected,
+			hint_diagnostic = bufferline_theme.normal,
+			hint_diagnostic_visible = bufferline_theme.visible,
+			hint_diagnostic_selected = bufferline_theme.selected,
 		},
 		options = {
 			close_command = function(n)
@@ -391,10 +389,10 @@ plugins["noice"] = {
     -- stylua: ignore
     keys = {
         { "<S-Enter>",   function() require("noice").redirect(vim.fn.getcmdline()) end,                 mode = "c",                 desc = "Redirect Cmdline" },
-        { "<leader>snl", function() require("noice").cmd("last") end,                                   desc = "Noice Last Message" },
-        { "<leader>snh", function() require("noice").cmd("history") end,                                desc = "Noice History" },
-        { "<leader>sna", function() require("noice").cmd("all") end,                                    desc = "Noice All" },
-        { "<leader>snd", function() require("noice").cmd("dismiss") end,                                desc = "Dismiss All" },
+        { "<leader>nl", function() require("noice").cmd("last") end,                                   desc = "Noice Last Message" },
+        { "<leader>nh", function() require("noice").cmd("history") end,                                desc = "Noice History" },
+        { "<leader>na", function() require("noice").cmd("all") end,                                    desc = "Noice All" },
+        { "<leader>nd", function() require("noice").cmd("dismiss") end,                                desc = "Dismiss All" },
         { "<c-f>",       function() if not require("noice.lsp").scroll(4) then return "<c-f>" end end,  silent = true,              expr = true,              desc = "Scroll Forward",  mode = { "i", "n", "s" } },
         { "<c-b>",       function() if not require("noice.lsp").scroll(-4) then return "<c-b>" end end, silent = true,              expr = true,              desc = "Scroll Backward", mode = { "i", "n", "s" } },
     },
@@ -438,8 +436,9 @@ plugins["which-key"] = {
 			["<leader>x"] = { name = "+diagnostics" },
 			["<leader>t"] = { name = "+telescope" },
 			["<leader>u"] = { name = "+utils" },
-			["<leader>sn"] = { name = "+noice" },
+			["<leader>n"] = { name = "+noice" },
 			["<leader>q"] = { name = "+session" },
+			["gs"] = { name = "surround" },
 		})
 		wk.setup(opts)
 	end,
