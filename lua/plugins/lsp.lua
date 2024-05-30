@@ -190,7 +190,7 @@ lsp.config = {
 				capabilities = require("cmp_nvim_lsp").default_capabilities(),
 				flags = lsp.flags,
 				on_attach = function(client, bufnr)
-					if #vim.lsp.get_active_clients({ name = "denols" }) > 0 then
+					if #vim.lsp.get_clients({ name = "denols" }) > 0 then
 						client.stop()
 					else
 						lsp.disableFormat(client)
@@ -231,6 +231,37 @@ lsp.config = {
 		end,
 	},
 	{ "bashls" },
+}
+
+local formatter = {}
+
+formatter.ft = {
+	lua = { "stylua" },
+	python = { "isort", "black" },
+	["javascriptreact"] = { "prettier" },
+	["typescriptreact"] = { "prettier" },
+	["vue"] = { "prettier" },
+	["css"] = { "prettier" },
+	["scss"] = { "prettier" },
+	["less"] = { "prettier" },
+	["html"] = { "prettier" },
+	["json"] = { "prettier" },
+	["jsonc"] = { "prettier" },
+	["yaml"] = { "prettier" },
+	["markdown"] = { "prettier" },
+	["markdown.mdx"] = { "prettier" },
+	["graphql"] = { "prettier" },
+	["handlebars"] = { "prettier" },
+	javascript = { { "prettierd", "prettier" } },
+	cs = { "astyle" },
+	c = { "astyle" },
+	cpp = { "astyle" },
+}
+
+formatter.config = {
+	shfmt = {
+		prepend_args = { "-i", "2" },
+	},
 }
 
 local plugins = {}
@@ -526,34 +557,11 @@ plugins["conform"] = {
 	-- Everything in opts will be passed to setup()
 	opts = {
 		-- Define your formatters
-		formatters_by_ft = {
-			lua = { "stylua" },
-			python = { "isort", "black" },
-			["javascriptreact"] = { "prettier" },
-			["typescriptreact"] = { "prettier" },
-			["vue"] = { "prettier" },
-			["css"] = { "prettier" },
-			["scss"] = { "prettier" },
-			["less"] = { "prettier" },
-			["html"] = { "prettier" },
-			["json"] = { "prettier" },
-			["jsonc"] = { "prettier" },
-			["yaml"] = { "prettier" },
-			["markdown"] = { "prettier" },
-			["markdown.mdx"] = { "prettier" },
-			["graphql"] = { "prettier" },
-			["handlebars"] = { "prettier" },
-			javascript = { { "prettierd", "prettier" } },
-			cs = { "csharpier" },
-		},
+		formatters_by_ft = formatter.ft,
 		-- Set up format-on-save
 		format_on_save = { timeout_ms = 500, lsp_fallback = true },
 		-- Customize formatters
-		formatters = {
-			shfmt = {
-				prepend_args = { "-i", "2" },
-			},
-		},
+		formatters = formatter.config,
 	},
 	init = function()
 		-- If you want the formatexpr, here is the place to set it

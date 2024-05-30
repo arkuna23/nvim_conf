@@ -71,16 +71,29 @@ string.trim_end = function(inputString)
 	return result
 end
 
-os.osname = (function()
-	local file = io.popen("cat /etc/*-release | grep '^PRETTY_NAME=' | awk -F'=' '{print $2}' | tr -d '\"'")
-	local distro = file:read("*a")
-	file:close()
-	return string.trim_end(distro)
-end)()
+os.file_exists = function(file)
+	local fid = io.open(file, "r")
+	if fid ~= nil then
+		io.close(fid)
+		return true
+	else
+		return false
+	end
+end
 
-os.username = (function()
+os.get_os_name = function()
+	local file = io.popen("cat /etc/*-release | grep '^PRETTY_NAME=' | awk -F'=' '{print $2}' | tr -d '\"'")
+	local distro = string.trim_end(file:read("*a"))
+	file:close()
+	os.get_os_name = function()
+		return distro
+	end
+	return distro
+end
+
+os.get_username = function()
 	return os.getenv("USER")
-end)()
+end
 
 M.get_startup_stats = function()
 	if not M._startupStats then

@@ -19,8 +19,8 @@ Hello, %s
 welcome to nvim on %s!
 
 ]],
-	os.username,
-	os.osname
+	os.get_username(),
+	os.get_os_name()
 )
 
 plugins["dashboard"] = {
@@ -73,6 +73,15 @@ plugins["dashboard"] = {
 	},
 	config = function(_, opts)
 		require("dashboard").setup(opts)
+		vim.cmd("colorscheme " .. COLORSCHEME)
+		vim.o.laststatus = 3
+
+		if vim.fn.argc(-1) == 1 then
+			local stat = vim.uv.fs_stat(vim.fn.argv(0))
+			if stat and stat.type == "directory" then
+				require("neo-tree")
+			end
+		end
 	end,
 }
 
@@ -84,8 +93,6 @@ plugins["neo-tree"] = {
 		"nvim-lua/plenary.nvim",
 		"nvim-tree/nvim-web-devicons",
 		"MunifTanjim/nui.nvim",
-		"nvim-lualine/lualine.nvim",
-		"akinsho/bufferline.nvim",
 	},
 	opts = function(_, opts)
 		opts.close_if_last_window = true
@@ -110,17 +117,8 @@ plugins["neo-tree"] = {
 			},
 		}
 	end,
-	init = function()
-		if vim.fn.argc(-1) == 1 then
-			local stat = vim.uv.fs_stat(vim.fn.argv(0))
-			if stat and stat.type == "directory" then
-				require("neo-tree")
-			end
-		end
-	end,
 	config = function(_, opts)
 		require("neo-tree").setup(opts)
-		-- vim.o.laststatus = 3
 	end,
 	keys = {
 		{ "ww", "<Cmd>Neotree focus<CR>", noremap = true, silent = true, desc = "focus NeoTree" },
@@ -159,6 +157,18 @@ plugins["mini.bufremove"] = {
 	},
 }
 
+local bufferline_theme = {
+	normal = {
+		bg = "#1e2030",
+	},
+	visible = {
+		bg = "#0c253c",
+	},
+	selected = {
+		bg = "#2A3458",
+	},
+}
+
 plugins["bufferline"] = {
 	"akinsho/bufferline.nvim",
 	dependencies = {
@@ -168,12 +178,43 @@ plugins["bufferline"] = {
 	event = "User Load",
 	opts = {
 		highlights = {
+<<<<<<< HEAD
 			buffer_selected = {
 				fg = "",
 				bg = "#2A3458",
 				bold = true,
 				italic = true,
+=======
+			fill = {
+				bg = "",
+>>>>>>> 1d8e366 (c and cpp formatter)
 			},
+			background = bufferline_theme.normal,
+			buffer_visible = bufferline_theme.visible,
+			buffer_selected = bufferline_theme.selected,
+			indicator_visible = bufferline_theme.visible,
+			close_button = bufferline_theme.normal,
+			close_button_visible = bufferline_theme.visible,
+			close_button_selected = bufferline_theme.selected,
+			separator = bufferline_theme.normal,
+			warning = bufferline_theme.normal,
+			warning_visible = bufferline_theme.visible,
+			warning_selected = bufferline_theme.selected,
+			warning_diagnostic = bufferline_theme.normal,
+			warning_diagnostic_visible = bufferline_theme.normal,
+			warning_diagnostic_selected = bufferline_theme.selected,
+			error = bufferline_theme.normal,
+			error_visible = bufferline_theme.normal,
+			error_selected = bufferline_theme.selected,
+			error_diagnostic = bufferline_theme.normal,
+			error_diagnostic_visible = bufferline_theme.normal,
+			error_diagnostic_selected = bufferline_theme.selected,
+			modified = bufferline_theme.normal,
+			modified_visible = bufferline_theme.visible,
+			modified_selected = bufferline_theme.selected,
+			duplicate_selected = bufferline_theme.selected,
+			duplicate_visible = bufferline_theme.visible,
+			duplicate = bufferline_theme.normal,
 		},
 		options = {
 			close_command = function(n)
@@ -191,6 +232,7 @@ plugins["bufferline"] = {
 					text_align = "left",
 				},
 			},
+			always_show_bufferline = true,
 			diagnostics = "nvim_lsp",
 			diagnostics_indicator = function(_, _, diagnostics_dict, _)
 				local s = " "
@@ -210,19 +252,22 @@ plugins["bufferline"] = {
 			callback = function()
 				vim.schedule(function()
 					local res, err = pcall(nvim_bufferline)
+					vim.o.laststatus = 3
 					if not res then
 						vim.notify(err)
 					end
 				end)
 			end,
 		})
-		vim.api.nvim_create_autocmd("BufAdd", {
-			callback = function()
-				vim.schedule(function()
-					vim.o.laststatus = 3
-				end)
-			end,
+
+		local fix_indicator = function()
+			vim.cmd("highlight BufferLineIndicatorSelected guibg=" .. bufferline_theme.selected.bg)
+		end
+		vim.api.nvim_create_autocmd("ColorScheme", {
+			pattern = "tokyonight",
+			callback = fix_indicator,
 		})
+		fix_indicator()
 	end,
 	keys = {
 		{ "<leader>bp", "<Cmd>BufferLineTogglePin<CR>", desc = "Toggle Pin" },

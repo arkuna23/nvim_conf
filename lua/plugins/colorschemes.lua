@@ -1,16 +1,17 @@
+require("utils")
+
 local plugins = {}
 
 plugins["tokyonight"] = {
 	"folke/tokyonight.nvim",
-	lazy = true,
-	event = "VeryLazy",
 	opts = {
 		style = "moon",
 		transparent = true,
 	},
-	config = function(_, opts)
-		require("tokyonight").setup(opts)
-	end,
 }
+
+for k, v in pairs(plugins) do
+	v.lazy = true
+end
 
 return plugins
