@@ -53,14 +53,14 @@ end
 lsp.keyAttach = function(buffer, keybindings)
 	for _, binding in pairs(keybindings) do
 		local modes = vim.split(binding[3] or "n", ",") -- 默认模式为普通模式
-		local res, err = pcall(
+		local _, err = pcall(
 			vim.keymap.set,
 			modes,
 			binding[1],
 			binding[2],
 			{ noremap = true, silent = true, buffer = buffer, desc = binding[4] }
 		)
-		if not res then
+		if err then
 			vim.notify(err, vim.log.levels.ERROR)
 			return
 		end
@@ -71,6 +71,7 @@ lsp.treesitter = {
 	"c",
 	"c_sharp",
 	"cpp",
+	"cmake",
 	"css",
 	"html",
 	"javascript",
@@ -110,9 +111,11 @@ lsp.ensure_installed = {
 	"stylua",
 	"pyright",
 	"bash-language-server",
-	"codelldb",
+	"clangd",
 	"markdownlint",
 	"marksman",
+	"cmakelang",
+	"cmakelint",
 }
 
 lsp.config = {
@@ -212,7 +215,47 @@ lsp.config = {
 			}
 		end,
 	},
-	{ "clangd" },
+	{
+		"clangd",
+		conf = function()
+			return vim.tbl_extend("force", lsp.config.default(), {
+				keys = {
+					{ "<leader>ch", "<cmd>ClangdSwitchSourceHeader<cr>", desc = "Switch Source/Header (C/C++)" },
+				},
+				root_dir = function(fname)
+					return require("lspconfig.util").root_pattern(
+						"Makefile",
+						"configure.ac",
+						"configure.in",
+						"config.h.in",
+						"meson.build",
+						"meson_options.txt",
+						"build.ninja"
+					)(fname) or require("lspconfig.util").root_pattern(
+						"compile_commands.json",
+						"compile_flags.txt"
+					)(fname) or require("lspconfig.util").find_git_ancestor(fname)
+				end,
+				capabilities = {
+					offsetEncoding = { "utf-16" },
+				},
+				cmd = {
+					"clangd",
+					"--background-index",
+					"--clang-tidy",
+					"--header-insertion=iwyu",
+					"--completion-style=detailed",
+					"--function-arg-placeholders",
+					"--fallback-style=llvm",
+				},
+				init_options = {
+					usePlaceholders = true,
+					completeUnimported = true,
+					clangdFileStatus = true,
+				},
+			})
+		end,
+	},
 	{ "pyright" },
 	{
 		"jsonls",
@@ -236,6 +279,7 @@ lsp.config = {
 	},
 	{ "bashls" },
 	{ "marksman" },
+	{ "neocmake" },
 }
 
 local formatter = {}
@@ -259,6 +303,7 @@ formatter.ft = {
 	cs = { "astyle" },
 	c = { "astyle" },
 	cpp = { "astyle" },
+	cmake = { "cmakelang" },
 	["markdown"] = { { "prettierd", "prettier" }, "markdownlint", "markdown-toc" },
 	["markdown.mdx"] = { { "prettierd", "prettier" }, "markdownlint", "markdown-toc" },
 }
@@ -708,6 +753,7 @@ plugins["markdown-preview"] = {
 	},
 	config = function()
 		vim.cmd([[do FileType]])
+		vim.g.mkdp_auto_close = 0
 	end,
 }
 
@@ -737,6 +783,189 @@ plugins["headlines"] = {
 			require("headlines").refresh()
 		end)
 	end,
+}
+
+plugins["clangd_extensions"] = {
+	"p00f/clangd_extensions.nvim",
+	lazy = true,
+	ft = "c",
+	config = function() end,
+	opts = {
+		inlay_hints = {
+			inline = false,
+		},
+		ast = {
+			--These require codicons (https://github.com/microsoft/vscode-codicons)
+			role_icons = {
+				type = "",
+				declaration = "",
+				expression = "",
+				specifier = "",
+				statement = "",
+				["template argument"] = "",
+			},
+			kind_icons = {
+				Compound = "",
+				Recovery = "",
+				TranslationUnit = "",
+				PackExpansion = "",
+				TemplateTypeParm = "",
+				TemplateTemplateParm = "",
+				TemplateParamObject = "",
+			},
+		},
+	},
+}
+
+plugins["cmake-tools"] = {
+	"Civitasv/cmake-tools.nvim",
+	dependencies = {
+		"akinsho/toggleterm.nvim",
+	},
+	lazy = true,
+	ft = { "cmake", "c" },
+	opts = {
+		cmake_runner = {
+			name = "toggleterm",
+		},
+	},
+}
+
+plugins["nvim-dap"] = {
+	"mfussenegger/nvim-dap",
+	recommended = true,
+	desc = "Debugging support. Requires language specific adapters to be configured. (see lang extras)",
+	dependencies = {
+
+		-- fancy UI for the debugger
+		{
+			"rcarriga/nvim-dap-ui",
+			dependencies = { "nvim-neotest/nvim-nio" },
+            -- stylua: ignore
+            keys = {
+                { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
+                { "<leader>de", function() require("dapui").eval() end, desc = "Eval", mode = {"n", "v"} },
+            },
+			opts = {},
+			config = function(_, opts)
+				local dap = require("dap")
+				local dapui = require("dapui")
+				dapui.setup(opts)
+				---@diagnostic disable: undefined-field
+				dap.listeners.after.event_initialized["dapui_config"] = function()
+					dapui.open({})
+				end
+				dap.listeners.before.event_terminated["dapui_config"] = function()
+					dapui.close({})
+				end
+				dap.listeners.before.event_exited["dapui_config"] = function()
+					dapui.close({})
+				end
+				---@diagnostic enable: undefined-field
+			end,
+		},
+
+		-- virtual text for the debugger
+		{
+			"theHamsta/nvim-dap-virtual-text",
+			opts = {},
+		},
+
+		-- mason.nvim integration
+		{
+			"jay-babu/mason-nvim-dap.nvim",
+			dependencies = "mason.nvim",
+			cmd = { "DapInstall", "DapUninstall" },
+			opts = {
+				-- Makes a best effort to setup the various debuggers with
+				-- reasonable debug configurations
+				automatic_installation = true,
+
+				-- You can provide additional configuration to the handlers,
+				-- see mason-nvim-dap README for more information
+				handlers = {},
+
+				-- You'll need to check that you have the required things installed
+				-- online, please don't ask me how to install them :)
+				ensure_installed = {
+					-- Update this to ensure that you have the debuggers for the langs you want
+				},
+			},
+		},
+
+		-- VsCode launch.json parser
+		{
+			"folke/neoconf.nvim",
+		},
+	},
+	opts = function()
+		---@diagnostic disable undefined-field
+		local dap = require("dap")
+		local mason_registry = require("mason-registry")
+		local codelldb_root = mason_registry.get_package("codelldb"):get_install_path() .. "/extension/"
+		local codelldb_path = codelldb_root .. "adapter/codelldb"
+		local liblldb_path = codelldb_root .. "lldb/lib/liblldb.so"
+		dap.adapters = {
+			codelldb = {
+				type = "server",
+				port = "${port}",
+				host = "127.0.0.1",
+				executable = {
+					command = codelldb_path,
+					args = { "--liblldb", liblldb_path, "--port", "${port}" },
+				},
+			},
+		}
+
+		local codelldb_conf = {
+			{
+				type = "codelldb",
+				request = "launch",
+				name = "Launch file",
+				program = function()
+					return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+				end,
+				cwd = "${workspaceFolder}",
+			},
+			{
+				type = "codelldb",
+				request = "attach",
+				name = "Attach to process",
+				pid = require("dap.utils").pick_process,
+				cwd = "${workspaceFolder}",
+			},
+		}
+
+		dap.configurations = {
+			c = codelldb_conf,
+			cpp = codelldb_conf,
+		}
+
+		---@diagnostic enable undefined-field
+	end,
+    -- stylua: ignore
+    ---@diagnostic disable: undefined-field
+    keys = {
+        { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, desc = "Breakpoint Condition" },
+        { "<leader>db", function() require("dap").toggle_breakpoint() end, desc = "Toggle Breakpoint" },
+        { "<leader>dc", function() require("dap").continue() end, desc = "Continue" },
+        { "<leader>da", function() require("dap").continue({ before = get_args }) end, desc = "Run with Args" },
+        { "<leader>dC", function() require("dap").run_to_cursor() end, desc = "Run to Cursor" },
+        { "<leader>dg", function() require("dap").goto_() end, desc = "Go to Line (No Execute)" },
+        { "<leader>di", function() require("dap").step_into() end, desc = "Step Into" },
+        { "<leader>dj", function() require("dap").down() end, desc = "Down" },
+        { "<leader>dk", function() require("dap").up() end, desc = "Up" },
+        { "<leader>dl", function() require("dap").run_last() end, desc = "Run Last" },
+        { "<leader>do", function() require("dap").step_out() end, desc = "Step Out" },
+        { "<leader>dO", function() require("dap").step_over() end, desc = "Step Over" },
+        { "<leader>dp", function() require("dap").pause() end, desc = "Pause" },
+        { "<leader>dr", function() require("dap").repl.toggle() end, desc = "Toggle REPL" },
+        { "<leader>ds", function() require("dap").session() end, desc = "Session" },
+        { "<leader>dt", function() require("dap").terminate() end, desc = "Terminate" },
+        { "<leader>dw", function() require("dap.ui.widgets").hover() end, desc = "Widgets" },
+    },
+	---@diagnostic enable: undefined-field
+	config = function() end,
 }
 
 return plugins

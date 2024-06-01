@@ -94,6 +94,7 @@ plugins["neo-tree"] = {
 		"nvim-tree/nvim-web-devicons",
 		"MunifTanjim/nui.nvim",
 	},
+	init = function() end,
 	opts = function(_, opts)
 		opts.close_if_last_window = true
 		opts.default_component_configs = {
@@ -231,7 +232,6 @@ plugins["bufferline"] = {
 					text_align = "left",
 				},
 			},
-			always_show_bufferline = true,
 			diagnostics = "nvim_lsp",
 			diagnostics_indicator = function(_, _, diagnostics_dict, _)
 				local s = " "
@@ -246,12 +246,11 @@ plugins["bufferline"] = {
 	config = function(_, opts)
 		require("bufferline").setup(opts)
 		-- Fix bufferline when restoring a session
-		vim.api.nvim_create_autocmd("BufAdd", {
+		vim.api.nvim_create_autocmd("BufEnter", {
 			once = true,
 			callback = function()
 				vim.schedule(function()
 					local res, err = pcall(nvim_bufferline)
-					vim.o.laststatus = 3
 					if not res then
 						vim.notify(err)
 					end
@@ -401,7 +400,8 @@ plugins["noice"] = {
 
 plugins["which-key"] = {
 	"folke/which-key.nvim",
-	event = "VeryLazy",
+	event = { "User Load" },
+	keys = { "<leader>" },
 	opts = {
 		plugins = {
 			marks = true,
@@ -439,6 +439,7 @@ plugins["which-key"] = {
 			["<leader>u"] = { name = "+utils" },
 			["<leader>n"] = { name = "+noice" },
 			["<leader>q"] = { name = "+session" },
+			["<leader>d"] = { name = "+debug" },
 			["<leader>m"] = { name = "+markdown" },
 			["gs"] = { name = "surround" },
 		})
@@ -523,6 +524,20 @@ plugins["dressing"] = {
 			return vim.ui.input(...)
 		end
 	end,
+}
+
+plugins["toggleterm"] = {
+	"akinsho/toggleterm.nvim",
+	version = "*",
+	cmd = { "ToggleTerm" },
+    -- stylua: ignore
+    keys = {
+        { "<C-t>", function() require("toggleterm").toggle() end, desc = "Toggle Terminal" }
+    },
+	opts = {
+		direction = "float",
+	},
+	config = true,
 }
 
 return plugins
