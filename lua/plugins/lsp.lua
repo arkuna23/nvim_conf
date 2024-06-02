@@ -88,6 +88,11 @@ lsp._default_config = function()
 			client.server_capabilities.documentFormattingProvider = false
 			client.server_capabilities.documentRangeFormattingProvider = false
 			lsp.keyAttach(bufnr, lsp.defaultKeybindings)
+			require("which-key").register({
+				["<leader>x"] = { name = "+diagnostics" },
+			}, {
+				buffer = bufnr,
+			})
 
 			-- copilot
 			if client.name == "copilot" then
@@ -234,11 +239,28 @@ lsp.config = {
 					{ "<leader>ll", "<plug>(vimtex-compile)", "n", "Vimtex compile" },
 					{ "<leader>ld", "<plug>(vimtex-doc-package)", "n", "Vimtex Docs" },
 				})
+				require("which-key").register({
+					["<leader>l"] = { name = "+vimtex" },
+				}, {
+					buffer = bufnr,
+				})
 			end,
 		})
 	end,
 	["bashls"] = lsp._default_config,
-	["marksman"] = lsp._default_config,
+	["marksman"] = function()
+		local default = lsp._default_config()
+		return vim.tbl_extend("force", default, {
+			on_attach = function(client, bufnr)
+				default.on_attach(client, bufnr)
+				require("which-key").register({
+					["<leader>m"] = { name = "+markdown" },
+				}, {
+					buffer = bufnr,
+				})
+			end,
+		})
+	end,
 	["neocmake"] = lsp._default_config,
 }
 

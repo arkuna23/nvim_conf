@@ -432,14 +432,12 @@ plugins["which-key"] = {
 		wk.register({
 			["<leader>b"] = { name = "+buffer" },
 			["<leader>c"] = { name = "+lsp" },
-			["<leader>x"] = { name = "+diagnostics" },
 			["<leader>t"] = { name = "+telescope" },
 			["<leader>u"] = { name = "+utils" },
 			["<leader>n"] = { name = "+noice" },
 			["<leader>q"] = { name = "+session" },
 			["<leader>d"] = { name = "+debug" },
-			["<leader>l"] = { name = "+vimtex" },
-			["<leader>m"] = { name = "+markdown" },
+			["<leader>e"] = { name = "+neotree" },
 			["gs"] = { name = "surround" },
 		})
 		wk.setup(opts)
