@@ -40,7 +40,7 @@ plugins["dashboard"] = {
 				{
 					icon = "  ",
 					desc = "Edit config",
-					action = "Neotree " .. utils.configRoot,
+					action = "Neotree " .. utils.config_root,
 				},
 				{
 					icon = "󰍉  ",
@@ -178,71 +178,69 @@ plugins["bufferline"] = {
 		"echasnovski/mini.bufremove",
 	},
 	event = "User Load",
-	opts = {
-		highlights = {
+	opts = function()
+		local opts = {
+			options = {
+				close_command = function(n)
+					require("mini.bufremove").delete(n, false)
+				end,
+				right_mouse_command = function(n)
+					require("mini.bufremove").delete(n, false)
+				end,
+				separator_style = "thin",
+				offsets = {
+					{
+						filetype = "neo-tree",
+						text = "File Explorer",
+						-- highlight = "Directory",
+						text_align = "left",
+					},
+				},
+				diagnostics = "nvim_lsp",
+				diagnostics_indicator = function(_, _, diagnostics_dict, _)
+					local s = " "
+					for e, n in pairs(diagnostics_dict) do
+						local sym = e == "error" and symbols.Error or (e == "warning" and symbols.Warn or symbols.Info)
+						s = s .. n .. sym
+					end
+					return s
+				end,
+			},
+		}
+
+		local highlights = {
 			fill = {
 				bg = "",
 			},
 			background = bufferline_theme.normal,
-			buffer_visible = bufferline_theme.visible,
-			buffer_selected = bufferline_theme.selected,
 			indicator_visible = bufferline_theme.visible,
-			close_button = bufferline_theme.normal,
-			close_button_visible = bufferline_theme.visible,
-			close_button_selected = bufferline_theme.selected,
 			separator = bufferline_theme.normal,
-			warning = bufferline_theme.normal,
-			warning_visible = bufferline_theme.visible,
-			warning_selected = bufferline_theme.selected,
-			warning_diagnostic = bufferline_theme.normal,
-			warning_diagnostic_visible = bufferline_theme.normal,
-			warning_diagnostic_selected = bufferline_theme.selected,
-			error = bufferline_theme.normal,
-			error_visible = bufferline_theme.normal,
-			error_selected = bufferline_theme.selected,
-			error_diagnostic = bufferline_theme.normal,
-			error_diagnostic_visible = bufferline_theme.normal,
-			error_diagnostic_selected = bufferline_theme.selected,
-			modified = bufferline_theme.normal,
-			modified_visible = bufferline_theme.visible,
-			modified_selected = bufferline_theme.selected,
-			duplicate_selected = bufferline_theme.selected,
-			duplicate_visible = bufferline_theme.visible,
-			duplicate = bufferline_theme.normal,
-			hint = bufferline_theme.normal,
-			hint_visible = bufferline_theme.visible,
-			hint_selected = bufferline_theme.selected,
-			hint_diagnostic = bufferline_theme.normal,
-			hint_diagnostic_visible = bufferline_theme.visible,
-			hint_diagnostic_selected = bufferline_theme.selected,
-		},
-		options = {
-			close_command = function(n)
-				require("mini.bufremove").delete(n, false)
-			end,
-			right_mouse_command = function(n)
-				require("mini.bufremove").delete(n, false)
-			end,
-			separator_style = "thin",
-			offsets = {
-				{
-					filetype = "neo-tree",
-					text = "File Explorer",
-					-- highlight = "Directory",
-					text_align = "left",
-				},
-			},
-			diagnostics = "nvim_lsp",
-			diagnostics_indicator = function(_, _, diagnostics_dict, _)
-				local s = " "
-				for e, n in pairs(diagnostics_dict) do
-					local sym = e == "error" and symbols.Error or (e == "warning" and symbols.Warn or symbols.Info)
-					s = s .. n .. sym
-				end
-				return s
-			end,
-		},
-	},
+		}
+		for _, v in ipairs({
+			"buffer",
+			"error",
+			"numbers",
+			"close_button",
+			"diagnostic",
+			"warning",
+			"warning_diagnostic",
+			"error",
+			"error_diagnostic",
+			"modified",
+			"duplicate",
+			"hint",
+			"hint_diagnostic",
+			"info",
+			"info_diagnostic",
+		}) do
+			highlights[v] = bufferline_theme.normal
+			highlights[v .. "_visible"] = bufferline_theme.visible
+			highlights[v .. "_selected"] = bufferline_theme.selected
+		end
+
+		opts.highlights = highlights
+		return opts
+	end,
 	config = function(_, opts)
 		require("bufferline").setup(opts)
 		-- Fix bufferline when restoring a session
@@ -440,6 +438,7 @@ plugins["which-key"] = {
 			["<leader>n"] = { name = "+noice" },
 			["<leader>q"] = { name = "+session" },
 			["<leader>d"] = { name = "+debug" },
+			["<leader>l"] = { name = "+vimtex" },
 			["<leader>m"] = { name = "+markdown" },
 			["gs"] = { name = "surround" },
 		})

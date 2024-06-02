@@ -27,7 +27,7 @@ M.read_file_lines = function(path)
 	return lines
 end
 
-M.configRoot = vim.fn.stdpath("config")
+M.config_root = vim.fn.stdpath("config")
 
 ---split string by delimiter
 ---@param inputString string
@@ -109,5 +109,29 @@ M.get_startup_stats = function()
 end
 
 M.nvim_loaded = false
+
+M.delegate = function(name, fn_name, ...)
+	local args = { ... }
+	return function()
+		require(name)[fn_name](table.unpack(args))
+	end
+end
+
+---get table keys
+---@param t table
+---@return table
+table.keys = function(t)
+	local keys = {}
+	for k, _ in pairs(t) do
+		if string.sub(k, 1, 1) ~= "_" then
+			table.insert(keys, k)
+		end
+	end
+	--vim.defer_fn(function()
+	--	vim.notify(table.concat(keys, ", "))
+	--end, 1000)
+
+	return keys
+end
 
 return M
