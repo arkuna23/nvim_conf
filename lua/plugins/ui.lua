@@ -446,8 +446,10 @@ plugins["which-key"] = {
 
 plugins["trouble"] = {
 	"folke/trouble.nvim",
-	cmd = "TroubleToggle",
+	branch = "main",
+	cmd = "Trouble",
 	dependencies = { "nvim-tree/nvim-web-devicons" },
+	config = true,
 }
 
 plugins["telescope"] = {

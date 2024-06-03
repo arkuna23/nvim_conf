@@ -34,13 +34,13 @@ lsp.defaultKeybindings = {
 	["rename"] = { "<leader>cr", "<cmd>lua vim.lsp.buf.rename()<CR>", "n", "Rename" }, -- Rename
 	["document_diagnostic"] = {
 		"<leader>xx",
-		"<cmd>TroubleToggle document_diagnostics<CR>",
+		"<cmd>Trouble diagnostics toggle filter.buf=0<CR>",
 		"n",
 		"Document Diagnostics",
 	}, -- Document Diagnostics
 	["workspace_diagnostic"] = {
 		"<leader>xX",
-		"<cmd>TroubleToggle workspace_diagnostics<CR>",
+		"<cmd>Trouble diagnostics toggle<CR>",
 		"n",
 		"Workspace Diagnostics",
 	}, -- Workspace Diagnostics
