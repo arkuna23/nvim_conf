@@ -46,12 +46,6 @@ lsp.defaultKeybindings = {
 	}, -- Workspace Diagnostics
 }
 
-local mason = {
-	packages = {
-		"tree-sitter-cli",
-	},
-}
-
 lsp.treesitter = {
 	"c",
 	"c_sharp",
@@ -285,6 +279,19 @@ lsp.keyAttach = function(buffer, keybindings)
 	end
 end
 
+local mason = {
+	packages = {
+		"tree-sitter-cli",
+		"stylua",
+		"prettier",
+		"cmakelang",
+		"clang-format",
+		"isort",
+		"markdownlint",
+		"markdown-toc",
+	},
+}
+
 local formatter = {}
 
 formatter.ft = {
@@ -414,6 +421,9 @@ plugins["nvim-lspconfig"] = {
 plugins["mason-lspconfig"] = {
 	"williamboman/mason-lspconfig.nvim",
 	lazy = true,
+	dependencies = {
+		"williamboman/mason.nvim",
+	},
 	opts = {
 		ensure_installed = vim.tbl_extend("keep", table.keys(lsp.config), mason.packages),
 	},
