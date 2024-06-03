@@ -110,7 +110,7 @@ end
 
 M.nvim_loaded = false
 
-M.delegate = function(name, fn_name, ...)
+M.delegate_call = function(name, fn_name, ...)
 	local args = { ... }
 	return function()
 		require(name)[fn_name](table.unpack(args))
