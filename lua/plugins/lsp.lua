@@ -73,190 +73,24 @@ lsp.treesitter = {
 	"latex",
 }
 
+lsp._default_on_attach = function(client, bufnr)
+	client.server_capabilities.documentFormattingProvider = false
+	client.server_capabilities.documentRangeFormattingProvider = false
+
+	-- copilot
+	if client.name == "copilot" then
+		require("copilot_cmp")._on_insert_enter({})
+	end
+end
+
 lsp._default_config = function()
 	return {
 		capabilities = require("cmp_nvim_lsp").default_capabilities(),
 		flags = lsp.flags,
 		-- default attach actions
-		on_attach = function(client, bufnr)
-			client.server_capabilities.documentFormattingProvider = false
-			client.server_capabilities.documentRangeFormattingProvider = false
-			lsp.keyAttach(bufnr, lsp.defaultKeybindings)
-			require("which-key").register({
-				["<leader>x"] = { name = "+diagnostics" },
-			}, {
-				buffer = bufnr,
-			})
-
-			-- copilot
-			if client.name == "copilot" then
-				require("copilot_cmp")._on_insert_enter({})
-			end
-		end,
+		on_attach = lsp._default_on_attach,
 	}
 end
-
-lsp.config = {
-	lua_ls = function()
-		local runtime_path = vim.split(package.path, ";")
-		table.insert(runtime_path, "lua/?.lua")
-		table.insert(runtime_path, "lua/?/init.lua")
-		return vim.tbl_extend("force", lsp._default_config(), {
-			settings = {
-				Lua = {
-					runtime = {
-						version = "LuaJIT",
-						path = runtime_path,
-					},
-					diagnostics = {
-						globals = { "vim" },
-					},
-					workspace = {
-						library = vim.api.nvim_get_runtime_file("", true),
-						checkThirdParty = false,
-					},
-					telemetry = {
-						enable = false,
-					},
-					codeLens = {
-						enable = true,
-					},
-				},
-			},
-		})
-	end,
-	["omnisharp"] = function()
-		return vim.tbl_extend("force", lsp._default_config(), {
-			cmd = {
-				"dotnet",
-				vim.fn.stdpath("data") .. "/mason/packages/omnisharp/libexec/Omnisharp.dll",
-			},
-			on_attach = function(client, bufnr)
-				client.server_capabilities.semanticTokensProvider = nil
-				lsp._default_config().on_attach(client, bufnr)
-			end,
-			enable_editorconfig_support = true,
-			enable_ms_build_load_projects_on_demand = false,
-			enable_roslyn_analyzers = false,
-			organize_imports_on_format = false,
-			enable_import_completion = false,
-			sdk_include_prereleases = true,
-			analyze_open_documents_only = false,
-		})
-	end,
-	["tsserver"] = function()
-		return {
-			single_file_support = true,
-			capabilities = require("cmp_nvim_lsp").default_capabilities(),
-			flags = lsp.flags,
-			on_attach = function(client, bufnr)
-				if #vim.lsp.get_clients({ name = "denols" }) > 0 then
-					client.stop()
-				else
-					lsp.disableFormat(client)
-					lsp._default_config().on_attach(client, bufnr)
-				end
-			end,
-		}
-	end,
-	["emmet_ls"] = function()
-		return {
-			filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less" },
-		}
-	end,
-	["clangd"] = function()
-		local default = lsp._default_config()
-		return vim.tbl_extend("force", default, {
-			on_attach = function(client, bufnr)
-				default.on_attach(client, bufnr)
-				lsp.keyAttach(bufnr, {
-					{ "<leader>ch", "<cmd>ClangdSwitchSourceHeader<cr>", "n", "Switch Source/Header (C/C++)" },
-				})
-			end,
-			root_dir = function(fname)
-				return require("lspconfig.util").root_pattern(
-					"Makefile",
-					"configure.ac",
-					"configure.in",
-					"config.h.in",
-					"meson.build",
-					"meson_options.txt",
-					"build.ninja"
-				)(fname) or require("lspconfig.util").root_pattern("compile_commands.json", "compile_flags.txt")(
-					fname
-				) or require("lspconfig.util").find_git_ancestor(fname)
-			end,
-			capabilities = {
-				offsetEncoding = { "utf-16" },
-			},
-			cmd = {
-				"clangd",
-				"--background-index",
-				"--clang-tidy",
-				"--header-insertion=iwyu",
-				"--completion-style=detailed",
-				"--function-arg-placeholders",
-				"--fallback-style=llvm",
-			},
-			init_options = {
-				usePlaceholders = true,
-				completeUnimported = true,
-				clangdFileStatus = true,
-			},
-		})
-	end,
-	["pyright"] = lsp._default_config,
-	["jsonls"] = function()
-		return {
-			-- lazy-load schemastore when needed
-			on_new_config = function(new_config)
-				new_config.settings.json.schemas = new_config.settings.json.schemas or {}
-				vim.list_extend(new_config.settings.json.schemas, require("schemastore").json.schemas())
-			end,
-			settings = {
-				json = {
-					format = {
-						enable = true,
-					},
-					validate = { enable = true },
-				},
-			},
-		}
-	end,
-	texlab = function()
-		local default = lsp._default_config()
-		return vim.tbl_extend("force", default, {
-			on_attach = function(client, bufnr)
-				default.on_attach(client, bufnr)
-				lsp.keyAttach(bufnr, {
-					{ "<leader>lp", "<plug>(vimtex-view)", "n", "Vimtex preview" },
-					{ "<leader>ll", "<plug>(vimtex-compile)", "n", "Vimtex compile" },
-					{ "<leader>ld", "<plug>(vimtex-doc-package)", "n", "Vimtex Docs" },
-				})
-				require("which-key").register({
-					["<leader>l"] = { name = "+vimtex" },
-				}, {
-					buffer = bufnr,
-				})
-			end,
-		})
-	end,
-	["bashls"] = lsp._default_config,
-	["marksman"] = function()
-		local default = lsp._default_config()
-		return vim.tbl_extend("force", default, {
-			on_attach = function(client, bufnr)
-				default.on_attach(client, bufnr)
-				require("which-key").register({
-					["<leader>m"] = { name = "+markdown" },
-				}, {
-					buffer = bufnr,
-				})
-			end,
-		})
-	end,
-	["neocmake"] = lsp._default_config,
-}
 
 lsp.mergeKeybindings = function(newKeybindings)
 	return vim.tbl_extend("force", lsp.defaultKeybindings, newKeybindings)
@@ -279,6 +113,210 @@ lsp.keyAttach = function(buffer, keybindings)
 	end
 end
 
+--- @class ConfigOpts
+--- @field inherit_on_attach boolean|nil whether inherit on_attach function, default is false
+--- @field extra function|nil  extra actions before merge default config
+--- @field inherit_keybindings boolean|nil whether inherit default keymaps, default is true
+--- @field keybindings table|nil
+--- @field whichkey table|nil which-key bindings
+
+--- create new config based on default config
+--- @param append_tbl table
+--- @param opts ConfigOpts|nil
+lsp.create_config = function(append_tbl, opts)
+	return function()
+		opts = opts or {
+			inherit_keybindings = true,
+		}
+
+		if opts.extra then
+			opts.extra()
+		end
+		if opts.inherit_on_attach then
+			local new_attach = append_tbl.on_attach
+			append_tbl.on_attach = function(client, bufnr)
+				lsp._default_on_attach(client, bufnr)
+				if opts.inherit_keybindings then
+					lsp.keyAttach(bufnr, lsp.defaultKeybindings)
+					require("which-key").register({
+						["<leader>x"] = { name = "+diagnostics" },
+					}, {
+						buffer = bufnr,
+					})
+				end
+				if opts.keybindings then
+					lsp.keyAttach(bufnr, opts.keybindings)
+				end
+				if opts.whichkey then
+					require("which-key").register(opts.whichkey, {
+						buffer = bufnr,
+					})
+				end
+				if new_attach then
+					new_attach(client, bufnr)
+				end
+			end
+		end
+		local new_conf = vim.tbl_extend("force", lsp._default_config(), append_tbl)
+
+		return new_conf
+	end
+end
+
+-- lsp configs
+lsp.config = {
+	lua_ls = lsp.create_config({
+		settings = {
+			Lua = {
+				runtime = {
+					version = "LuaJIT",
+					path = runtime_path,
+				},
+				diagnostics = {
+					globals = { "vim" },
+				},
+				workspace = {
+					library = vim.api.nvim_get_runtime_file("", true),
+					checkThirdParty = false,
+				},
+				telemetry = {
+					enable = false,
+				},
+				codeLens = {
+					enable = true,
+				},
+			},
+		},
+	}, {
+		extra = function()
+			local runtime_path = vim.split(package.path, ";")
+			table.insert(runtime_path, "lua/?.lua")
+			table.insert(runtime_path, "lua/?/init.lua")
+		end,
+	}),
+	["omnisharp"] = lsp.create_config({
+		cmd = {
+			"dotnet",
+			vim.fn.stdpath("data") .. "/mason/packages/omnisharp/libexec/Omnisharp.dll",
+		},
+		on_attach = function(client, _)
+			client.server_capabilities.semanticTokensProvider = nil
+		end,
+		enable_editorconfig_support = true,
+		enable_ms_build_load_projects_on_demand = false,
+		enable_roslyn_analyzers = false,
+		organize_imports_on_format = false,
+		enable_import_completion = false,
+		sdk_include_prereleases = true,
+		analyze_open_documents_only = false,
+	}, {
+		inherit_on_attach = true,
+	}),
+	["tsserver"] = function()
+		return {
+			single_file_support = true,
+			capabilities = require("cmp_nvim_lsp").default_capabilities(),
+			flags = lsp.flags,
+			on_attach = function(client, bufnr)
+				if #vim.lsp.get_clients({ name = "denols" }) > 0 then
+					client.stop()
+				else
+					lsp.disableFormat(client)
+					lsp._default_config().on_attach(client, bufnr)
+				end
+			end,
+		}
+	end,
+	["emmet_ls"] = function()
+		return {
+			filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less" },
+		}
+	end,
+	["clangd"] = lsp.create_config({
+		root_dir = function(fname)
+			return require("lspconfig.util").root_pattern(
+				"Makefile",
+				"configure.ac",
+				"configure.in",
+				"config.h.in",
+				"meson.build",
+				"meson_options.txt",
+				"build.ninja"
+			)(fname) or require("lspconfig.util").root_pattern("compile_commands.json", "compile_flags.txt")(fname) or require(
+				"lspconfig.util"
+			).find_git_ancestor(fname)
+		end,
+		capabilities = {
+			offsetEncoding = { "utf-16" },
+		},
+		cmd = {
+			"clangd",
+			"--background-index",
+			"--clang-tidy",
+			"--header-insertion=iwyu",
+			"--completion-style=detailed",
+			"--function-arg-placeholders",
+			"--fallback-style=llvm",
+		},
+		init_options = {
+			usePlaceholders = true,
+			completeUnimported = true,
+			clangdFileStatus = true,
+		},
+	}, {
+		inherit_on_attach = true,
+		keybindings = {
+			{ "<leader>ch", "<cmd>ClangdSwitchSourceHeader<cr>", "n", "Switch Source/Header (C/C++)" },
+		},
+		whichkey = {
+			["<leader>c"] = { name = "+clangd" },
+		},
+	}),
+	["pyright"] = lsp._default_config,
+	["jsonls"] = function()
+		return {
+			-- lazy-load schemastore when needed
+			on_new_config = function(new_config)
+				new_config.settings.json.schemas = new_config.settings.json.schemas or {}
+				vim.list_extend(new_config.settings.json.schemas, require("schemastore").json.schemas())
+			end,
+			settings = {
+				json = {
+					format = {
+						enable = true,
+					},
+					validate = { enable = true },
+				},
+			},
+		}
+	end,
+	texlab = lsp.create_config({}, {
+		inherit_on_attach = true,
+		keybindings = {
+			{ "<leader>lp", "<plug>(vimtex-view)", "n", "Vimtex preview" },
+			{ "<leader>ll", "<plug>(vimtex-compile)", "n", "Vimtex compile" },
+			{ "<leader>ld", "<plug>(vimtex-doc-package)", "n", "Vimtex Docs" },
+		},
+		whichkey = {
+			["<leader>l"] = { name = "+vimtex" },
+		},
+	}),
+	["bashls"] = lsp._default_config,
+	["marksman"] = lsp.create_config({
+		on_attach = function(_, bufnr)
+			require("which-key").register({
+				["<leader>m"] = { name = "+markdown" },
+			}, {
+				buffer = bufnr,
+			})
+		end,
+	}),
+	["neocmake"] = lsp._default_config,
+	["cssls"] = lsp._default_config,
+	["html"] = lsp._default_config,
+}
+
+-- mason configs
 local mason = {
 	packages = {
 		"tree-sitter-cli",
@@ -294,6 +332,7 @@ local mason = {
 
 local formatter = {}
 
+-- formatter filetypes
 formatter.ft = {
 	lua = { "stylua" },
 	python = { "isort", "black" },
@@ -433,7 +472,7 @@ plugins["mason"] = {
 	"williamboman/mason.nvim",
 	event = "User Load",
 	cmd = "Mason",
-	keys = { { "<leader>cm", "<cmd>Mason<cr>", desc = "Mason" } },
+	keys = { { "<leader>m", "<cmd>Mason<cr>", desc = "Mason" } },
 	build = ":MasonUpdate",
 	opts = {
 		ui = {
