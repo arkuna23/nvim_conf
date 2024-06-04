@@ -117,7 +117,7 @@ end
 --- @field inherit_on_attach boolean|nil whether inherit on_attach function, default is false
 --- @field extra function|nil  extra actions before merge default config
 --- @field inherit_keybindings boolean|nil whether inherit default keymaps, default is true
---- @field keybindings table|nil
+--- @field keybindings table[]|nil lsp keybindings
 --- @field whichkey table|nil which-key bindings
 
 --- create new config based on default config
@@ -163,6 +163,12 @@ lsp.create_config = function(append_tbl, opts)
 
 		return new_conf
 	end
+end
+
+lsp._latex_preview = function()
+	vim.cmd("VimtexCompile")
+	local bufname = vim.api.nvim_buf_get_name(0)
+	utils.PDFViewer:open(bufname:gsub("%.%w+$", ".pdf"), bufname)
 end
 
 -- lsp configs
@@ -295,8 +301,8 @@ lsp.config = {
 	texlab = lsp.create_config({}, {
 		inherit_on_attach = true,
 		keybindings = {
-			{ "<leader>lp", "<plug>(vimtex-view)", "n", "Vimtex preview" },
-			{ "<leader>ll", "<plug>(vimtex-compile)", "n", "Vimtex compile" },
+			{ "<leader>ll", lsp._latex_preview, "n", "Vimtex preview" },
+			{ "<leader>lc", "<plug>(vimtex-compile)", "n", "Vimtex compile" },
 			{ "<leader>ld", "<plug>(vimtex-doc-package)", "n", "Vimtex Docs" },
 		},
 		whichkey = {
@@ -1042,6 +1048,7 @@ plugins["vimtex"] = {
 	"lervag/vimtex",
 	ft = "tex",
 	config = function()
+		vim.g.vimtex_view_automatic = 0
 		vim.g.vimtex_mappings_disable = { ["n"] = { "K" } } -- disable `K` as it conflicts with LSP hover
 		vim.g.vimtex_quickfix_method = vim.fn.executable("pplatex") == 1 and "pplatex" or "latexlog"
 	end,
