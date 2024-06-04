@@ -20,7 +20,7 @@ welcome to nvim on %s!
 
 ]],
 	os.get_username(),
-	os.get_os_name()
+	os.get_os_release()
 )
 
 plugins["dashboard"] = {

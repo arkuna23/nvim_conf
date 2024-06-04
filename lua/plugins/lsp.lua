@@ -125,36 +125,38 @@ end
 --- @param opts ConfigOpts|nil
 lsp.create_config = function(append_tbl, opts)
 	return function()
-		opts = opts or {
+		opts = table.default_values(opts, {
 			inherit_keybindings = true,
-		}
+		})
 
 		if opts.extra then
 			opts.extra()
 		end
-		if opts.inherit_on_attach then
-			local new_attach = append_tbl.on_attach
-			append_tbl.on_attach = function(client, bufnr)
+
+		local new_attach = append_tbl.on_attach
+		append_tbl.on_attach = function(client, bufnr)
+			if opts.inherit_on_attach then
 				lsp._default_on_attach(client, bufnr)
-				if opts.inherit_keybindings then
-					lsp.keyAttach(bufnr, lsp.defaultKeybindings)
-					require("which-key").register({
-						["<leader>x"] = { name = "+diagnostics" },
-					}, {
-						buffer = bufnr,
-					})
-				end
-				if opts.keybindings then
-					lsp.keyAttach(bufnr, opts.keybindings)
-				end
-				if opts.whichkey then
-					require("which-key").register(opts.whichkey, {
-						buffer = bufnr,
-					})
-				end
-				if new_attach then
-					new_attach(client, bufnr)
-				end
+			end
+			if opts.inherit_keybindings then
+				lsp.keyAttach(bufnr, lsp.defaultKeybindings)
+				require("which-key").register({
+					["<leader>x"] = { name = "+diagnostics" },
+					["<leader>c"] = { name = "+lsp" },
+				}, {
+					buffer = bufnr,
+				})
+			end
+			if opts.keybindings then
+				lsp.keyAttach(bufnr, opts.keybindings)
+			end
+			if opts.whichkey then
+				require("which-key").register(opts.whichkey, {
+					buffer = bufnr,
+				})
+			end
+			if new_attach then
+				new_attach(client, bufnr)
 			end
 		end
 		local new_conf = vim.tbl_extend("force", lsp._default_config(), append_tbl)

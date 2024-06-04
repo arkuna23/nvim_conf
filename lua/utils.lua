@@ -29,6 +29,28 @@ end
 
 M.config_root = vim.fn.stdpath("config")
 
+M.nvim_loaded = false
+
+M.delegate_call = function(name, fn_name, ...)
+	local args = { ... }
+	return function()
+		require(name)[fn_name](table.unpack(args))
+	end
+end
+
+M.run_pdf_preview = function(filename)
+	local job = require("plenary.job"):new({
+		command = M.config_root .. "/etc/pdf-preview/" .. string.lower(jit.os) .. "-" .. jit.arch,
+		args = { filename },
+		cwd = vim.fn.getcwd(),
+		on_exit = function(_, return_val)
+			vim.notify("pdf live preview exited with code " .. return_val)
+		end,
+	})
+	job:start()
+	return job
+end
+
 ---split string by delimiter
 ---@param inputString string
 ---@param delimiter string
@@ -81,14 +103,22 @@ os.file_exists = function(file)
 	end
 end
 
-os.get_os_name = function()
+os.get_os_release = function()
 	local file = io.popen("cat /etc/*-release | grep '^PRETTY_NAME=' | awk -F'=' '{print $2}' | tr -d '\"'")
 	local distro = string.trim_end(file:read("*a"))
 	file:close()
-	os.get_os_name = function()
+	os.get_os_release = function()
 		return distro
 	end
 	return distro
+end
+
+os.get_os_arch = function()
+	local ffi = require("ffi")
+	ffi.cdef([[
+  const char *jit_arch;
+]])
+	return ffi.string(ffi.C.jit_arch)
 end
 
 os.get_username = function()
@@ -108,15 +138,6 @@ M.get_startup_stats = function()
 	return M._startupStats
 end
 
-M.nvim_loaded = false
-
-M.delegate_call = function(name, fn_name, ...)
-	local args = { ... }
-	return function()
-		require(name)[fn_name](table.unpack(args))
-	end
-end
-
 ---get table keys
 ---@param t table
 ---@return table
@@ -132,6 +153,17 @@ table.keys = function(t)
 	--end, 1000)
 
 	return keys
+end
+
+---set table default values
+---@param tbl table|nil
+---@param default_tbl table
+table.default_values = function(tbl, default_tbl)
+	tbl = tbl or {}
+	for k, v in pairs(default_tbl) do
+		tbl[k] = tbl[k] or v
+	end
+	return tbl
 end
 
 return M
