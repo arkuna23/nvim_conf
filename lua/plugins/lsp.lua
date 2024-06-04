@@ -114,7 +114,7 @@ lsp.keyAttach = function(buffer, keybindings)
 end
 
 --- @class ConfigOpts
---- @field inherit_on_attach boolean|nil whether inherit on_attach function, default is false
+--- @field inherit_on_attach boolean|nil whether inherit on_attach function, default is true
 --- @field extra function|nil  extra actions before merge default config
 --- @field inherit_keybindings boolean|nil whether inherit default keymaps, default is true
 --- @field keybindings table[]|nil lsp keybindings
@@ -126,6 +126,7 @@ end
 lsp.create_config = function(append_tbl, opts)
 	return function()
 		opts = table.default_values(opts, {
+			inherit_on_attach = true,
 			inherit_keybindings = true,
 		})
 
@@ -165,9 +166,14 @@ lsp.create_config = function(append_tbl, opts)
 	end
 end
 
+lsp._latex_view_buffers = {}
+
 lsp._latex_preview = function()
-	vim.cmd("VimtexCompile")
 	local bufname = vim.api.nvim_buf_get_name(0)
+	if not lsp._latex_view_buffers[bufname] then
+		vim.cmd("VimtexCompile")
+		lsp._latex_view_buffers[bufname] = true
+	end
 	utils.PDFViewer:open(bufname:gsub("%.%w+$", ".pdf"), bufname)
 end
 
@@ -229,17 +235,21 @@ lsp.config = {
 				if #vim.lsp.get_clients({ name = "denols" }) > 0 then
 					client.stop()
 				else
-					lsp.disableFormat(client)
 					lsp._default_config().on_attach(client, bufnr)
 				end
 			end,
 		}
 	end,
-	["emmet_ls"] = function()
-		return {
-			filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less" },
-		}
-	end,
+	["emmet_ls"] = lsp.create_config({
+		filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less" },
+		init_options = {
+			html = {
+				options = {
+					["bem.enabled"] = true,
+				},
+			},
+		},
+	}),
 	["clangd"] = lsp.create_config({
 		root_dir = function(fname)
 			return require("lspconfig.util").root_pattern(
@@ -320,8 +330,20 @@ lsp.config = {
 		end,
 	}),
 	["neocmake"] = lsp._default_config,
-	["cssls"] = lsp._default_config,
 	["html"] = lsp._default_config,
+	["cssls"] = lsp._default_config,
+}
+
+lsp.autotag_ft = {
+	"html",
+	"jsx",
+	"vue",
+	"markdown",
+	"php",
+	"tsx",
+	"xml",
+	"typescript",
+	"javascript",
 }
 
 -- mason configs
@@ -371,13 +393,39 @@ formatter.config = {
 	},
 	["clang-format"] = {
 		prepend_args = function(_, ctx)
-			local file = vim.fs.find(".clang-format", { upward = true, path = ctx.dirname })[1]
+			local file = vim.fs.find(".clang-format", { upward = true, path = ctx.dirname, type = "file" })[1]
 			if not file then
 				file = utils.config_root .. "/.clang-format"
 			end
 
 			return {
 				"-style=file:" .. file,
+			}
+		end,
+	},
+	["prettier"] = {
+		prepend_args = function(_, ctx)
+			local config_files = {
+				".prettierrc",
+				".prettierrc.yaml",
+				".prettierrc.yml",
+				".prettierrc.json",
+				".prettierrc.toml",
+				"prettier.config.js",
+				".prettierrc.js",
+				"package.json",
+			}
+
+			for _, file in ipairs(config_files) do
+				local matches = vim.fs.find(file, { upward = true, path = ctx.dirname, type = "file" })
+				if #matches > 0 then
+					return {}
+				end
+			end
+
+			return {
+				"--config",
+				utils.config_root .. "/.prettierrc.json",
 			}
 		end,
 	},
@@ -542,6 +590,22 @@ plugins["nvim-autopairs"] = {
 	event = "InsertEnter",
 	main = "nvim-autopairs",
 	opts = {},
+}
+
+plugins["nvim-ts-autotag"] = {
+	"windwp/nvim-ts-autotag",
+	ft = lsp.autotag_ft,
+	opts = function()
+		local filetypes = {}
+		for _, ft in pairs(lsp.autotag_ft) do
+			filetypes[ft] = {
+				enable_close = true,
+			}
+		end
+		return {
+			per_filetype = filetypes,
+		}
+	end,
 }
 
 plugins["LuaSnip"] = {
@@ -873,21 +937,21 @@ plugins["clangd_extensions"] = {
 		ast = {
 			--These require codicons (https://github.com/microsoft/vscode-codicons)
 			role_icons = {
-				type = "",
-				declaration = "",
-				expression = "",
-				specifier = "",
-				statement = "",
-				["template argument"] = "",
+				type = symbols.Type,
+				declaration = symbols.Declaration,
+				expression = symbols.Circle,
+				specifier = symbols.ListTree,
+				statement = symbols.SymbolEvent,
+				["template argument"] = symbols.Template,
 			},
 			kind_icons = {
-				Compound = "",
-				Recovery = "",
-				TranslationUnit = "",
-				PackExpansion = "",
-				TemplateTypeParm = "",
-				TemplateTemplateParm = "",
-				TemplateParamObject = "",
+				Compound = symbols.Namespace,
+				Recovery = symbols.Error,
+				TranslationUnit = symbols.CodeFile,
+				PackExpansion = symbols.Ellipsis,
+				TemplateTypeParm = symbols.Template,
+				TemplateTemplateParm = symbols.Template,
+				TemplateParamObject = symbols.Template,
 			},
 		},
 	},
@@ -1049,6 +1113,7 @@ plugins["vimtex"] = {
 	ft = "tex",
 	config = function()
 		vim.g.vimtex_view_automatic = 0
+		vim.g.vimtex_quickfix_open_on_warning = 0
 		vim.g.vimtex_mappings_disable = { ["n"] = { "K" } } -- disable `K` as it conflicts with LSP hover
 		vim.g.vimtex_quickfix_method = vim.fn.executable("pplatex") == 1 and "pplatex" or "latexlog"
 	end,
