@@ -3,11 +3,11 @@ local utils = require("utils")
 
 local lsp = {}
 
-lsp.flags = {
+lsp._default_flags = {
 	debounce_text_changes = 150,
 }
 
-lsp.defaultKeybindings = {
+lsp._default_keybindings = {
 	["lsp_info"] = { "<leader>cl", "<cmd>LspInfo<CR>", "n", "Lsp Info" }, -- Lsp Info
 	["definitions"] = { "gd", "<cmd>Telescope lsp_definitions<CR>", "n", "Goto Definitions" }, -- Goto Definition
 	["references"] = { "gr", "<cmd>Telescope lsp_references<CR>", "n", "References" }, -- References
@@ -71,6 +71,7 @@ lsp.treesitter = {
 	"bibtex",
 	"markdown_inline",
 	"latex",
+	"vue",
 }
 
 lsp._default_on_attach = function(client, bufnr)
@@ -86,17 +87,17 @@ end
 lsp._default_config = function()
 	return {
 		capabilities = require("cmp_nvim_lsp").default_capabilities(),
-		flags = lsp.flags,
+		flags = lsp._default_flags,
 		-- default attach actions
 		on_attach = lsp._default_on_attach,
 	}
 end
 
-lsp.mergeKeybindings = function(newKeybindings)
-	return vim.tbl_extend("force", lsp.defaultKeybindings, newKeybindings)
+lsp.merge_keybindings = function(newKeybindings)
+	return vim.tbl_extend("force", lsp._default_keybindings, newKeybindings)
 end
 
-lsp.keyAttach = function(buffer, keybindings)
+lsp.key_attach = function(buffer, keybindings)
 	for _, binding in pairs(keybindings) do
 		local modes = vim.split(binding[3] or "n", ",") -- 默认模式为普通模式
 		local _, err = pcall(
@@ -104,7 +105,7 @@ lsp.keyAttach = function(buffer, keybindings)
 			modes,
 			binding[1],
 			binding[2],
-			{ noremap = true, silent = true, buffer = buffer, desc = binding[4] }
+			{ noremap = true, silent = true, buffer = buffer, desc = binding[4] or binding.desc }
 		)
 		if err then
 			vim.notify(err, vim.log.levels.ERROR)
@@ -114,11 +115,11 @@ lsp.keyAttach = function(buffer, keybindings)
 end
 
 --- @class ConfigOpts
---- @field inherit_on_attach boolean|nil whether inherit on_attach function, default is true
---- @field extra function|nil  extra actions before merge default config
---- @field inherit_keybindings boolean|nil whether inherit default keymaps, default is true
---- @field keybindings table[]|nil lsp keybindings
---- @field whichkey table|nil which-key bindings
+--- @field inherit_on_attach boolean|optvalue whether inherit on_attach function, default is true
+--- @field extra optvalue  extra actions before merge default config
+--- @field inherit_keybindings boolean|optvalue whether inherit default keymaps, default is true
+--- @field keybindings table[]|optvalue lsp keybindings
+--- @field whichkey table|optvalue which-key bindings
 
 --- create new config based on default config
 --- @param append_tbl table
@@ -133,6 +134,7 @@ lsp.create_config = function(append_tbl, opts)
 		if opts.extra then
 			opts.extra()
 		end
+		utils.parse_dyn_table(opts)
 
 		local new_attach = append_tbl.on_attach
 		append_tbl.on_attach = function(client, bufnr)
@@ -140,7 +142,7 @@ lsp.create_config = function(append_tbl, opts)
 				lsp._default_on_attach(client, bufnr)
 			end
 			if opts.inherit_keybindings then
-				lsp.keyAttach(bufnr, lsp.defaultKeybindings)
+				lsp.key_attach(bufnr, lsp._default_keybindings)
 				require("which-key").register({
 					["<leader>x"] = { name = "+diagnostics" },
 					["<leader>c"] = { name = "+lsp" },
@@ -149,7 +151,7 @@ lsp.create_config = function(append_tbl, opts)
 				})
 			end
 			if opts.keybindings then
-				lsp.keyAttach(bufnr, opts.keybindings)
+				lsp.key_attach(bufnr, opts.keybindings)
 			end
 			if opts.whichkey then
 				require("which-key").register(opts.whichkey, {
@@ -226,20 +228,6 @@ lsp.config = {
 	}, {
 		inherit_on_attach = true,
 	}),
-	["tsserver"] = function()
-		return {
-			single_file_support = true,
-			capabilities = require("cmp_nvim_lsp").default_capabilities(),
-			flags = lsp.flags,
-			on_attach = function(client, bufnr)
-				if #vim.lsp.get_clients({ name = "denols" }) > 0 then
-					client.stop()
-				else
-					lsp._default_config().on_attach(client, bufnr)
-				end
-			end,
-		}
-	end,
 	["emmet_ls"] = lsp.create_config({
 		filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less" },
 		init_options = {
@@ -332,6 +320,103 @@ lsp.config = {
 	["neocmake"] = lsp._default_config,
 	["html"] = lsp._default_config,
 	["cssls"] = lsp._default_config,
+	volar = lsp._default_config,
+	vtsls = lsp.create_config({
+		filetypes = {
+			"javascript",
+			"javascriptreact",
+			"javascript.jsx",
+			"typescript",
+			"typescriptreact",
+			"typescript.tsx",
+			"vue",
+		},
+		settings = {
+			complete_function_calls = true,
+			vtsls = {
+				enableMoveToFileCodeAction = true,
+				autoUseWorkspaceTsdk = true,
+				experimental = {
+					completion = {
+						enableServerSideFuzzyMatch = true,
+					},
+				},
+				tsserver = {
+					globalPlugins = {
+						{
+							name = "@vue/typescript-plugin",
+							location = utils.get_pkg_path("vue-language-server", "/node_modules/@vue/language-server"),
+							languages = { "vue" },
+							configNamespace = "typescript",
+							enableForWorkspaceTypeScriptVersions = true,
+						},
+					},
+				},
+			},
+			typescript = {
+				updateImportsOnFileMove = { enabled = "always" },
+				suggest = {
+					completeFunctionCalls = true,
+				},
+				inlayHints = {
+					enumMemberValues = { enabled = true },
+					functionLikeReturnTypes = { enabled = true },
+					parameterNames = { enabled = "literals" },
+					parameterTypes = { enabled = true },
+					propertyDeclarationTypes = { enabled = true },
+					variableTypes = { enabled = false },
+				},
+			},
+		},
+	}, {
+		inherit_keybindings = false,
+		keybindings = function()
+			local new_keys = table.deep_copy(lsp._default_keybindings)
+			new_keys["declaration"] = {
+				"gD",
+				function()
+					require("vtsls").commands.goto_source_definition(0)
+				end,
+				desc = "Goto Source Definition",
+			}
+			new_keys["file_ref"] = {
+				"gR",
+				function()
+					require("vtsls").commands.file_references(0)
+				end,
+				desc = "File References",
+			}
+			new_keys["organize_imports"] = {
+				"<leader>co",
+				function()
+					require("vtsls").commands.organize_imports(0)
+				end,
+				desc = "Organize Imports",
+			}
+			new_keys["add_missing_imports"] = {
+				"<leader>cM",
+				function()
+					require("vtsls").commands.add_missing_imports(0)
+				end,
+				desc = "Add missing imports",
+			}
+			new_keys["fix_all_diagnostics"] = {
+				"<leader>cD",
+				function()
+					require("vtsls").commands.fix_all(0)
+				end,
+				desc = "Fix all diagnostics",
+			}
+			new_keys["select_workspace_version"] = {
+				"<leader>cV",
+				function()
+					require("vtsls").commands.select_ts_version(0)
+				end,
+				desc = "Select TS workspace version",
+			}
+			return new_keys
+		end,
+	}),
 }
 
 lsp.autotag_ft = {
@@ -585,6 +670,7 @@ plugins["mason"] = {
 		end
 	end,
 }
+
 plugins["nvim-autopairs"] = {
 	"windwp/nvim-autopairs",
 	event = "InsertEnter",
@@ -605,6 +691,15 @@ plugins["nvim-ts-autotag"] = {
 		return {
 			per_filetype = filetypes,
 		}
+	end,
+}
+
+plugins["nvim-vtsls"] = {
+	"yioneko/nvim-vtsls",
+	lazy = true,
+	opts = {},
+	config = function(_, opts)
+		require("vtsls").config(opts)
 	end,
 }
 
@@ -668,34 +763,7 @@ plugins["nvim-cmp"] = {
 		lspkind.init({
 			mode = "symbol",
 			preset = "codicons",
-			symbol_map = {
-				Text = symbols.Text,
-				Method = symbols.Method,
-				Function = symbols.Function,
-				Constructor = symbols.Constructor,
-				Field = symbols.Field,
-				Variable = symbols.Variable,
-				Class = symbols.Class,
-				Interface = symbols.Interface,
-				Module = symbols.Module,
-				Property = symbols.Property,
-				Unit = symbols.Unit,
-				Value = symbols.Value,
-				Enum = symbols.Enum,
-				Keyword = symbols.Keyword,
-				Snippet = symbols.Snippet,
-				Color = symbols.Color,
-				File = symbols.File,
-				Reference = symbols.Reference,
-				Folder = symbols.Folder,
-				EnumMember = symbols.EnumMember,
-				Constant = symbols.Constant,
-				Struct = symbols.Struct,
-				Event = symbols.Event,
-				Operator = symbols.Operator,
-				TypeParameter = symbols.TypeParameter,
-				Copilot = symbols.Copilot,
-			},
+			symbol_map = symbols,
 		})
 
 		local cmp = require("cmp")
@@ -827,7 +895,7 @@ plugins["rustaceanvim"] = {
 	opts = {
 		server = {
 			on_attach = function(_, bufnr)
-				lsp.keyAttach(bufnr, lsp.defaultKeybindings)
+				lsp.key_attach(bufnr, lsp._default_keybindings)
 			end,
 			default_settings = {
 				-- rust-analyzer language server configuration

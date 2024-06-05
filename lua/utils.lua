@@ -1,4 +1,5 @@
 local M = {}
+---@alias optvalue function|nil
 
 ---convert table elements to array
 ---@param table table
@@ -187,6 +188,45 @@ M.is_buffer_alive = function(bufname)
 	return false
 end
 
+---parse dynamic value
+---@param dyn_value any
+---@return any
+M.parse_dyn_value = function(dyn_value)
+	return type(dyn_value) == "function" and dyn_value() or dyn_value
+end
+
+---transform table with dynamic values
+---@param dyn_table table
+M.parse_dyn_table = function(dyn_table)
+	for k, v in pairs(dyn_table) do
+		if type(v) == "function" then
+			dyn_table[k] = v()
+		end
+	end
+end
+
+M.log_warn = function(msg)
+	vim.notify(msg, vim.log.levels.WARN)
+end
+
+---get mason installed package path
+---@param pkg string
+---@param path string
+---@param opts table|nil
+---@return string location
+M.get_pkg_path = function(pkg, path, opts)
+	pcall(require, "mason") -- make sure Mason is loaded. Will fail when generating docs
+	local root = vim.env.MASON or (vim.fn.stdpath("data") .. "/mason")
+	opts = opts or {}
+	opts.warn = opts.warn == nil and true or opts.warn
+	path = path or ""
+	local ret = root .. "/packages/" .. pkg .. "/" .. path
+	if opts.warn and not vim.loop.fs_stat(ret) then
+		M.log_warn(("Mason package path not found for **%s**:\n- `%s`"):format(pkg, path))
+	end
+	return ret
+end
+
 ---get table keys
 ---@param t table
 ---@return table
@@ -210,12 +250,29 @@ end
 table.default_values = function(tbl, default_tbl)
 	if tbl then
 		for k, v in pairs(default_tbl) do
-			tbl[k] = tbl[k] or v
+			if tbl[k] == nil then
+				tbl[k] = v
+			end
 		end
 	else
 		tbl = default_tbl
 	end
 	return tbl
+end
+
+table.deep_copy = function(orig)
+	local orig_type = type(orig)
+	local copy
+	if orig_type == "table" then
+		copy = {}
+		for orig_key, orig_value in next, orig, nil do
+			copy[table.deep_copy(orig_key)] = table.deep_copy(orig_value)
+		end
+		setmetatable(copy, table.deep_copy(getmetatable(orig)))
+	else -- number, string, boolean, etc
+		copy = orig
+	end
+	return copy
 end
 
 return M
