@@ -74,7 +74,7 @@ lsp.treesitter = {
 	"vue",
 }
 
-lsp._default_on_attach = function(client, bufnr)
+lsp._default_on_attach = function(client, _)
 	client.server_capabilities.documentFormattingProvider = false
 	client.server_capabilities.documentRangeFormattingProvider = false
 
@@ -116,7 +116,7 @@ end
 
 --- @class ConfigOpts
 --- @field inherit_on_attach boolean|optvalue whether inherit on_attach function, default is true
---- @field extra optvalue  extra actions before merge default config
+--- @field extra optvalue  extra actions to process final config
 --- @field inherit_keybindings boolean|optvalue whether inherit default keymaps, default is true
 --- @field keybindings table[]|optvalue lsp keybindings
 --- @field whichkey table|optvalue which-key bindings
@@ -130,11 +130,7 @@ lsp.create_config = function(append_tbl, opts)
 			inherit_on_attach = true,
 			inherit_keybindings = true,
 		})
-
-		if opts.extra then
-			opts.extra()
-		end
-		utils.parse_dyn_table(opts)
+		utils.process_dyn_table(opts, { "extra" })
 
 		local new_attach = append_tbl.on_attach
 		append_tbl.on_attach = function(client, bufnr)
@@ -164,7 +160,7 @@ lsp.create_config = function(append_tbl, opts)
 		end
 		local new_conf = vim.tbl_extend("force", lsp._default_config(), append_tbl)
 
-		return new_conf
+		return opts.extra and opts.extra(new_conf) or new_conf
 	end
 end
 
@@ -345,7 +341,6 @@ lsp.config = {
 					globalPlugins = {
 						{
 							name = "@vue/typescript-plugin",
-							location = utils.get_pkg_path("vue-language-server", "/node_modules/@vue/language-server"),
 							languages = { "vue" },
 							configNamespace = "typescript",
 							enableForWorkspaceTypeScriptVersions = true,
@@ -369,6 +364,10 @@ lsp.config = {
 			},
 		},
 	}, {
+		extra = function(conf)
+			conf.settings.vtsls.tsserver.globalPlugins[1].location =
+				utils.get_pkg_path("vue-language-server", "/node_modules/@vue/language-server")
+		end,
 		inherit_keybindings = false,
 		keybindings = function()
 			local new_keys = table.deep_copy(lsp._default_keybindings)

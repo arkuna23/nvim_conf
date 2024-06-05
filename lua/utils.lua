@@ -197,12 +197,25 @@ end
 
 ---transform table with dynamic values
 ---@param dyn_table table
-M.parse_dyn_table = function(dyn_table)
+---@param exclude string[]|nil
+M.process_dyn_table = function(dyn_table, exclude)
+	exclude = M.list2hashtable(exclude or {})
 	for k, v in pairs(dyn_table) do
-		if type(v) == "function" then
+		if (not exclude[k]) and type(v) == "function" then
 			dyn_table[k] = v()
 		end
 	end
+end
+
+---convert list items to table keys
+---@param list any[]
+---@return table
+M.list2hashtable = function(list)
+	local hash = {}
+	for _, v in ipairs(list) do
+		hash[v] = true
+	end
+	return hash
 end
 
 M.log_warn = function(msg)
