@@ -122,10 +122,13 @@ end
 --- @field whichkey table|optvalue which-key bindings
 
 --- create new config based on default config
---- @param append_tbl table
+--- @param append_tbl table|optvalue
 --- @param opts ConfigOpts|nil
 lsp.create_config = function(append_tbl, opts)
 	return function()
+		append_tbl = utils.parse_dyn_value(append_tbl)
+		append_tbl = append_tbl or {}
+
 		opts = table.default_values(opts, {
 			inherit_on_attach = true,
 			inherit_keybindings = true,
@@ -416,6 +419,7 @@ lsp.config = {
 			return new_keys
 		end,
 	}),
+	["taplo"] = lsp.create_config({}),
 }
 
 lsp.autotag_ft = {
@@ -776,7 +780,8 @@ plugins["nvim-cmp"] = {
 			sources = cmp.config.sources({
 				{ name = "nvim_lsp" },
 				{ name = "luasnip" },
-				{ name = "copilot", priority = 100 },
+				{ name = "crates" },
+				{ name = "copilot" },
 			}, {
 				{ name = "buffer" },
 				{ name = "path" },
