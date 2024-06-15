@@ -505,6 +505,7 @@ plugins["telescope"] = {
 		{ "<leader>tf", "<Cmd>Telescope find_files<CR>", desc = "find file", silent = true, noremap = true },
 		{ "<leader>t<C-f>", "<Cmd>Telescope live_grep<CR>", desc = "live grep", silent = true, noremap = true },
 		{ "<leader>te", "<Cmd>Telescope env<CR>", desc = "environment variables", silent = true, noremap = true },
+		{ "<leader>tb", "<Cmd> Telescope buffers<CR>", desc = "buffers", silent = true, noremap = true },
 	},
 }
 

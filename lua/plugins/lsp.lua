@@ -162,8 +162,11 @@ lsp.create_config = function(append_tbl, opts)
 			end
 		end
 		local new_conf = vim.tbl_extend("force", lsp._default_config(), append_tbl)
+		if opts.extra then
+			opts.extra(new_conf)
+		end
 
-		return opts.extra and opts.extra(new_conf) or new_conf
+		return new_conf
 	end
 end
 
@@ -176,6 +179,14 @@ lsp._latex_preview = function()
 		lsp._latex_view_buffers[bufname] = true
 	end
 	utils.PDFViewer:open(bufname:gsub("%.%w+$", ".pdf"), bufname)
+end
+
+lsp._solve_volar_conflict = function()
+	for _, client in pairs(vim.lsp.get_clients()) do
+		if client.name == "tsserver" then
+			client.stop()
+		end
+	end
 end
 
 -- lsp configs
@@ -316,110 +327,41 @@ lsp.config = {
 			})
 		end,
 	}),
-	["neocmake"] = lsp._default_config,
-	["html"] = lsp._default_config,
-	["cssls"] = lsp._default_config,
-	volar = lsp._default_config,
-	vtsls = lsp.create_config({
-		filetypes = {
-			"javascript",
-			"javascriptreact",
-			"javascript.jsx",
-			"typescript",
-			"typescriptreact",
-			"typescript.tsx",
-			"vue",
-		},
+	["neocmake"] = lsp.create_config(),
+	["html"] = lsp.create_config(),
+	["cssls"] = lsp.create_config(),
+	volar = lsp.create_config(function()
+		return {
+			init_options = {
+				typescript = {
+					tsdk = utils.get_pkg_path("typescript-language-server", "node_modules/typescript/lib"),
+				},
+			},
+		}
+	end),
+	["eslint"] = lsp.create_config({
 		settings = {
-			complete_function_calls = true,
-			vtsls = {
-				enableMoveToFileCodeAction = true,
-				autoUseWorkspaceTsdk = true,
-				experimental = {
-					completion = {
-						enableServerSideFuzzyMatch = true,
-					},
-				},
-				tsserver = {
-					globalPlugins = {
-						{
-							name = "@vue/typescript-plugin",
-							languages = { "vue" },
-							configNamespace = "typescript",
-							enableForWorkspaceTypeScriptVersions = true,
-						},
-					},
-				},
-			},
-			typescript = {
-				updateImportsOnFileMove = { enabled = "always" },
-				suggest = {
-					completeFunctionCalls = true,
-				},
-				inlayHints = {
-					enumMemberValues = { enabled = true },
-					functionLikeReturnTypes = { enabled = true },
-					parameterNames = { enabled = "literals" },
-					parameterTypes = { enabled = true },
-					propertyDeclarationTypes = { enabled = true },
-					variableTypes = { enabled = false },
-				},
-			},
+			workingDirectories = { mode = "auto" },
 		},
 	}, {
-		extra = function(conf)
-			conf.settings.vtsls.tsserver.globalPlugins[1].location =
-				utils.get_pkg_path("vue-language-server", "/node_modules/@vue/language-server")
-		end,
 		inherit_keybindings = false,
-		keybindings = function()
-			local new_keys = table.deep_copy(lsp._default_keybindings)
-			new_keys["declaration"] = {
-				"gD",
-				function()
-					require("vtsls").commands.goto_source_definition(0)
-				end,
-				desc = "Goto Source Definition",
-			}
-			new_keys["file_ref"] = {
-				"gR",
-				function()
-					require("vtsls").commands.file_references(0)
-				end,
-				desc = "File References",
-			}
-			new_keys["organize_imports"] = {
-				"<leader>co",
-				function()
-					require("vtsls").commands.organize_imports(0)
-				end,
-				desc = "Organize Imports",
-			}
-			new_keys["add_missing_imports"] = {
-				"<leader>cM",
-				function()
-					require("vtsls").commands.add_missing_imports(0)
-				end,
-				desc = "Add missing imports",
-			}
-			new_keys["fix_all_diagnostics"] = {
-				"<leader>cD",
-				function()
-					require("vtsls").commands.fix_all(0)
-				end,
-				desc = "Fix all diagnostics",
-			}
-			new_keys["select_workspace_version"] = {
-				"<leader>cV",
-				function()
-					require("vtsls").commands.select_ts_version(0)
-				end,
-				desc = "Select TS workspace version",
-			}
-			return new_keys
-		end,
 	}),
-	["taplo"] = lsp.create_config({}),
+	["tsserver"] = lsp.create_config(function()
+		local volar_path = utils.get_pkg_path("vue-language-server", "node_modules/@vue/language-server")
+		return {
+			init_options = {
+				plugins = {
+					{
+						name = "@vue/typescript-plugin",
+						location = volar_path,
+						languages = { "vue", "typescript", "javascript" },
+					},
+				},
+			},
+			filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+		}
+	end),
+	["taplo"] = lsp.create_config(),
 }
 
 lsp.autotag_ft = {
@@ -467,6 +409,7 @@ formatter.ft = {
 	["graphql"] = { "prettier" },
 	["handlebars"] = { "prettier" },
 	javascript = { { "prettierd", "prettier" } },
+	typescript = { { "prettierd", "prettier" } },
 	cs = { "clang-format" },
 	c = { "clang-format" },
 	cpp = { "clang-format" },
@@ -591,10 +534,12 @@ plugins["nvim-lspconfig"] = {
 		"williamboman/mason.nvim",
 		"williamboman/mason-lspconfig.nvim",
 	},
-	config = function(_, opts)
+	config = function(_, _)
 		for k, v in pairs(lsp.config) do
 			if string.sub(k, 1, 1) ~= "_" then
-				require("lspconfig")[k].setup(v())
+				if not require("neoconf").get(k .. ".disable") then
+					require("lspconfig")[k].setup(v())
+				end
 			end
 		end
 		vim.api.nvim_command("LspStart")
@@ -706,6 +651,12 @@ plugins["nvim-vtsls"] = {
 	end,
 }
 
+plugins["neoconf"] = {
+	"folke/neoconf.nvim",
+	cmd = "Neoconf",
+	opts = {},
+}
+
 plugins["LuaSnip"] = {
 	"L3MON4D3/LuaSnip",
 -- stylua: ignore
@@ -781,7 +732,7 @@ plugins["nvim-cmp"] = {
 				{ name = "nvim_lsp" },
 				{ name = "luasnip" },
 				{ name = "crates" },
-				{ name = "copilot" },
+				{ name = "copilot", priority = 100 },
 			}, {
 				{ name = "buffer" },
 				{ name = "path" },
