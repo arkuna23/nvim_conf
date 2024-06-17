@@ -181,14 +181,6 @@ lsp._latex_preview = function()
 	utils.PDFViewer:open(bufname:gsub("%.%w+$", ".pdf"), bufname)
 end
 
-lsp._solve_volar_conflict = function()
-	for _, client in pairs(vim.lsp.get_clients()) do
-		if client.name == "tsserver" then
-			client.stop()
-		end
-	end
-end
-
 -- lsp configs
 lsp.config = {
 	lua_ls = lsp.create_config({
@@ -639,15 +631,6 @@ plugins["nvim-ts-autotag"] = {
 		return {
 			per_filetype = filetypes,
 		}
-	end,
-}
-
-plugins["nvim-vtsls"] = {
-	"yioneko/nvim-vtsls",
-	lazy = true,
-	opts = {},
-	config = function(_, opts)
-		require("vtsls").config(opts)
 	end,
 }
 
