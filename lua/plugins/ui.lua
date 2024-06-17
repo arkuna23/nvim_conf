@@ -76,6 +76,7 @@ plugins["dashboard"] = {
 		vim.cmd("colorscheme " .. COLORSCHEME)
 
 		if vim.fn.argc(-1) == 1 then
+			---@diagnostic disable-next-line: undefined-field
 			local stat = vim.uv.fs_stat(vim.fn.argv(0))
 			if stat and stat.type == "directory" then
 				require("neo-tree")
@@ -248,6 +249,7 @@ plugins["bufferline"] = {
 			once = true,
 			callback = function()
 				vim.schedule(function()
+					---@diagnostic disable-next-line: undefined-global
 					local res, err = pcall(nvim_bufferline)
 					if not res then
 						vim.notify(err)
@@ -308,7 +310,11 @@ plugins["lualine"] = {
 					},
 				},
 				lualine_x = {
-					"filesize",
+					{
+						require("noice").api.statusline.mode.get,
+						cond = require("noice").api.statusline.mode.has,
+						color = { fg = "#ff9e64" },
+					},
 					{
 						"fileformat",
 						symbols = { unix = symbols.Unix, dos = symbols.Dos, mac = symbols.Mac },

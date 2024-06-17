@@ -10,7 +10,7 @@ plugins["tokyonight"] = {
 	},
 }
 
-for k, v in pairs(plugins) do
+for _, v in pairs(plugins) do
 	v.lazy = true
 end
 
