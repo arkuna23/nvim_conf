@@ -14,7 +14,7 @@ lsp._default_keybindings = {
 	["declaration"] = { "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", "n", "Goto Declaration" }, -- Goto Declaration
 	["type_implementations"] = { "gI", "<cmd>Telescope lsp_implementations<CR>", "n", "Goto Implementations" }, -- Goto Implementation
 	["type_definitions"] = { "gy", "<cmd>Telescope lsp_type_definitions<CR>", "n", "Goto Type Definitions" }, -- Goto Type Definition
-	["hover"] = { "K", "<cmd>lua vim.lsp.buf.hover()<CR>", "n", "Hover" }, -- Hover
+	["hover"] = { "T", "<cmd>lua vim.lsp.buf.hover()<CR>", "n", "Hover" }, -- Hover
 	["signature_help"] = { "gK", "<cmd>lua vim.lsp.buf.signature_help()<CR>", "n", "Signature Help" }, -- Signature Help
 	["signature_help_insert"] = {
 		"<c-k>",
@@ -721,8 +721,8 @@ plugins["nvim-cmp"] = {
 				{ name = "path" },
 			}),
 			mapping = cmp.mapping.preset.insert({
-				["<C-n>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }),
-				["<C-p>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }),
+				["<C-j>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }),
+				["<C-k>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }),
 				["<C-b>"] = cmp.mapping.scroll_docs(-4),
 				["<C-f>"] = cmp.mapping.scroll_docs(4),
 				["<C-Space>"] = cmp.mapping.complete(),
@@ -1120,7 +1120,6 @@ plugins["vimtex"] = {
 	config = function()
 		vim.g.vimtex_view_automatic = 0
 		vim.g.vimtex_quickfix_open_on_warning = 0
-		vim.g.vimtex_mappings_disable = { ["n"] = { "K" } } -- disable `K` as it conflicts with LSP hover
 		vim.g.vimtex_quickfix_method = vim.fn.executable("pplatex") == 1 and "pplatex" or "latexlog"
 	end,
 }
