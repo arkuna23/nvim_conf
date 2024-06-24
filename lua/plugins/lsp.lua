@@ -815,7 +815,7 @@ plugins["conform"] = {
 		-- Define your formatters
 		formatters_by_ft = formatter.ft,
 		-- Set up format-on-save
-		format_on_save = { timeout_ms = 500, lsp_fallback = true },
+		format_on_save = { timeout_ms = 1000 },
 		-- Customize formatters
 		formatters = formatter.config,
 	},
@@ -902,6 +902,21 @@ plugins["markdown-preview"] = {
 		vim.cmd([[do FileType]])
 		vim.g.mkdp_auto_close = 0
 	end,
+}
+
+plugins["img-clip"] = {
+	"HakonHarnes/img-clip.nvim",
+	ft = { "markdown", "tex" },
+	opts = {
+		default = {
+			dir_path = "images",
+			relative_to_current_file = true,
+		},
+	},
+	keys = {
+		-- suggested keymap
+		{ "<leader>p", "<cmd>PasteImage<cr>", desc = "Paste image from clipboard" },
+	},
 }
 
 plugins["headlines"] = {
