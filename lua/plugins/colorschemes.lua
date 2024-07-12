@@ -1,4 +1,4 @@
-require("utils")
+require("lib.util")
 
 local plugins = {}
 

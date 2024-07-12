@@ -32,104 +32,10 @@ M.config_root = vim.fn.stdpath("config")
 
 M.nvim_loaded = false
 
-M.delegate_call = function(name, fn_name, ...)
+M.delegate_call = function(mod_name, fn_name, ...)
 	local args = { ... }
 	return function()
-		require(name)[fn_name](table.unpack(args))
-	end
-end
-
-local PDFViewer = {
-	pdf_preview_port = 8999,
-}
-
----start pdf preview server
----@param filename string
-function PDFViewer:run(filename)
-	if self.server then
-		self:stop()
-	end
-
-	local cmd = M.config_root .. "/etc/pdf-preview/" .. string.lower(jit.os) .. "-" .. jit.arch
-	local server = vim.fn.jobstart({ cmd, filename, self.pdf_preview_port }, {
-		cwd = vim.fn.getcwd(),
-		on_exit = function(_, return_val)
-			if return_val ~= 0 then
-				vim.notify("pdf live preview exited with code " .. return_val)
-			end
-		end,
-	})
-	self.filename = filename
-	self.server = server
-end
-
----open browser to preview, bind a buffer
----@param filename string
----@param bufname string stop server on buf close
-function PDFViewer:open(filename, bufname)
-	-- has not started or change file
-	if filename ~= self.filename then
-		self:run(filename)
-		self._buffer = bufname
-
-		-- if current server has not been binded to a buffer, bind it to the current buffer
-		if not self._init then
-			vim.api.nvim_create_autocmd("BufDelete", {
-				callback = function()
-					if vim.api.nvim_buf_get_name(0) then
-						self._buffer = nil
-						self:stop()
-					end
-				end,
-			})
-			self._init = true
-		end
-	end
-
-	if self.server then
-		vim.fn.jobstart({ "xdg-open", "http://127.0.0.1:" .. self.pdf_preview_port })
-	end
-end
-
----stop pdf viewer server
-function PDFViewer:stop()
-	vim.system({ "curl", "-X", "POST", "http://127.0.0.1:" .. self.pdf_preview_port .. "/stop" }):wait()
-	self.server = nil
-end
-
-M.PDFViewer = PDFViewer
-
----split string by delimiter
----@param inputString string
----@param delimiter string
----@return table
-string.split = function(inputString, delimiter)
-	local result = {}
-	local pattern = "(.-)" .. delimiter .. "()"
-	local currentPosition = 1
-	for part, _ in string.gmatch(inputString, pattern) do
-		result[currentPosition] = part
-		currentPosition = currentPosition + 1
-	end
-	return result
-end
-
----pad string to specified length
----@param inputString string
----@param length number
----@param padding string
----@return string | nil
-string.pad_string = function(inputString, length, padding)
-	if #padding ~= 1 then
-		return nil
-	end
-
-	local strLength = #inputString
-	if strLength >= length then
-		return inputString
-	else
-		local spaces = length - strLength
-		return inputString .. string.rep(padding, spaces)
+		require(mod_name)[fn_name](table.unpack(args))
 	end
 end
 
@@ -153,6 +59,7 @@ end
 
 os.get_os_release = function()
 	local file = io.popen("cat /etc/*-release | grep '^PRETTY_NAME=' | awk -F'=' '{print $2}' | tr -d '\"'")
+	assert(file, "invalid os")
 	local distro = string.trim_end(file:read("*a"))
 	file:close()
 	os.get_os_release = function()
@@ -255,6 +162,20 @@ table.keys = function(t)
 	--end, 1000)
 
 	return keys
+end
+
+---check whether list contains specified element
+---@param list table
+---@param ele any
+---@return boolean
+table.list_contains = function(list, ele)
+	for _, e in ipairs(list) do
+		if e == ele then
+			return true
+		end
+	end
+
+	return false
 end
 
 ---set table default values

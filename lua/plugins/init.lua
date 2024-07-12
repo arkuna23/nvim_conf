@@ -1,4 +1,4 @@
-local utils = require("utils")
+local utils = require("lib.util")
 
 local function trigger_user_load()
 	vim.api.nvim_exec_autocmds("User", { pattern = "Load" })
@@ -23,8 +23,11 @@ vim.api.nvim_create_autocmd("User", {
 local plugins = vim.tbl_extend(
 	"keep",
 	require("plugins.ui"),
-	require("plugins.lsp"),
+	require("plugins.lsp.core"),
+	require("plugins.lsp.lang"),
 	require("plugins.colorschemes"),
+	require("plugins.editor"),
+	require("plugins.dap"),
 	require("plugins.etc")
 )
 return utils.table2array(plugins)

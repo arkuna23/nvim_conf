@@ -1,37 +1,17 @@
+require("lib.util")
+local manager = require("lib.manager")
+local config = require("config.init")
+
 COLORSCHEME = "tokyonight"
 
--- clone lazy.nvim
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+vim.api.nvim_create_user_command(
+	"TogglePluginsEnabled",
+	manager.toggle_plugin_enabled,
+	{ desc = "toggle lazy.nvim and plugins state" }
+)
 
-if not (vim.uv or vim.loop).fs_stat(lazypath) then
-    -- bootstrap lazy.nvim
-    -- stylua: ignore
-    vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable",
-        lazypath })
+if manager.plugin_enabled() then
+	manager.load_lazy()
+else
+	config.setup()
 end
-vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
-
-local config = require("config.init")
-require("lazy").setup(require("plugins.init"), {
-	performance = {
-		rtp = {
-			disabled_plugins = {
-				"editorconfig",
-				"gzip",
-				"matchit",
-				"matchparen",
-				"netrwPlugin",
-				"shada",
-				"tarPlugin",
-				"tohtml",
-				"tutor",
-				"zipPlugin",
-			},
-		},
-	},
-	ui = {
-		backdrop = 60,
-	},
-})
-
-config.setup()

@@ -59,4 +59,9 @@ plugins["copilot"] = {
 	},
 }
 
+plugins["plenary"] = {
+	"nvim-lua/plenary.nvim",
+	lazy = true,
+}
+
 return plugins

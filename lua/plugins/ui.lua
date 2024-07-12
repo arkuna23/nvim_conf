@@ -1,5 +1,5 @@
-local utils = require("utils")
-local symbols = require("symbols")
+local util = require("lib.util")
+local symbols = require("lib.symbols")
 
 local plugins = {}
 
@@ -30,7 +30,7 @@ plugins["dashboard"] = {
 		theme = "doom",
 		config = {
 			-- https://patorjk.com/software/taag
-			header = string.split(header, "\n"),
+			header = vim.fn.split(header, "\n", true),
 			center = {
 				{
 					icon = "  ",
@@ -40,7 +40,7 @@ plugins["dashboard"] = {
 				{
 					icon = "  ",
 					desc = "Edit config",
-					action = "Neotree " .. utils.config_root,
+					action = "Neotree " .. util.config_root,
 				},
 				{
 					icon = "󰍉  ",
@@ -59,7 +59,7 @@ plugins["dashboard"] = {
 				},
 			},
 			footer = function()
-				local stats = require("utils").get_startup_stats()
+				local stats = util.get_startup_stats()
 				return {
 					string.format(
 						"⚡ loaded %d/%d plugins in %.2f ms on startup",
@@ -76,7 +76,7 @@ plugins["dashboard"] = {
 		vim.cmd("colorscheme " .. COLORSCHEME)
 
 		if vim.fn.argc(-1) == 1 then
-			---@diagnostic disable-next-line: undefined-field
+			---@diagnostic disable-next-line: param-type-mismatch
 			local stat = vim.uv.fs_stat(vim.fn.argv(0))
 			if stat and stat.type == "directory" then
 				require("neo-tree")
@@ -125,38 +125,6 @@ plugins["neo-tree"] = {
 	keys = {
 		{ "<leader>ee", "<Cmd>Neotree focus<CR>", noremap = true, silent = true, desc = "focus NeoTree" },
 		{ "<leader>et", "<Cmd>Neotree toggle<CR>", noremap = true, silent = true, desc = "toggle NeoTree" },
-	},
-}
-
-plugins["mini.bufremove"] = {
-	"echasnovski/mini.bufremove",
-	keys = {
-		{
-			"<leader>bd",
-			function()
-				local bd = require("mini.bufremove").delete
-				if vim.bo.modified then
-					local choice =
-						vim.fn.confirm(("Save changes to %q?"):format(vim.fn.bufname()), "&Yes\n&No\n&Cancel")
-					if choice == 1 then -- Yes
-						vim.cmd.write()
-						bd(0)
-					elseif choice == 2 then -- No
-						bd(0, true)
-					end
-				else
-					bd(0)
-				end
-			end,
-			desc = "Delete Buffer",
-		},
-		{
-			"<leader>bD",
-			function()
-				require("mini.bufremove").delete(0, true)
-			end,
-			desc = "Delete Buffer (Force)",
-		},
 	},
 }
 
@@ -311,8 +279,10 @@ plugins["lualine"] = {
 				},
 				lualine_x = {
 					{
-						require("noice").api.statusline.mode.get,
-						cond = require("noice").api.statusline.mode.has,
+						---@diagnostic disable-next-line: undefined-field
+						require("noice").api.status.mode.get,
+						---@diagnostic disable-next-line: undefined-field
+						cond = require("noice").api.status.mode.has,
 						color = { fg = "#ff9e64" },
 					},
 					{
