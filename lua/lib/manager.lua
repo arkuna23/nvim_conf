@@ -53,7 +53,7 @@ M.toggle_plugin_enabled = function()
 	if M.plugin_enabled() then
 		local succ, err = os.remove(flag_path)
 		if succ then
-			vim.notify("plugin disabled, will be effective at the next start")
+			vim.notify("Plugins disabled, will be effective at the next start")
 		elseif err then
 			vim.notify(err, vim.log.levels.ERROR)
 		end
@@ -62,7 +62,7 @@ M.toggle_plugin_enabled = function()
 		if f then
 			f:write("enabled")
 			f:close()
-			vim.notify("plugins enabled, loading")
+			vim.notify("Plugins enabled, please restart your neovim")
 			M.load_lazy()
 		elseif err then
 			vim.notify(err, vim.log.levels.ERROR)
