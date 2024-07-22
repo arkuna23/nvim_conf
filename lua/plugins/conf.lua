@@ -100,7 +100,7 @@ config.lsp = {
 			{ "<leader>ch", "<cmd>ClangdSwitchSourceHeader<cr>", "n", "Switch Source/Header (C/C++)" },
 		},
 		whichkey = {
-			["<leader>c"] = { name = "+clangd" },
+			{ "<leader>c", group = "clangd" },
 		},
 	}),
 	["pyright"] = lsp_lib.create_config(),
@@ -129,18 +129,12 @@ config.lsp = {
 			{ "<leader>ld", "<plug>(vimtex-doc-package)", "n", "Vimtex Docs" },
 		},
 		whichkey = {
-			["<leader>l"] = { name = "+vimtex" },
+			{ "<leader>l", group = "vimtex" },
 		},
 	}),
 	["bashls"] = lsp_lib.create_config(),
-	["marksman"] = lsp_lib.create_config({
-		on_attach = function(_, bufnr)
-			require("which-key").register({
-				["<leader>m"] = { name = "+markdown" },
-			}, {
-				buffer = bufnr,
-			})
-		end,
+	["marksman"] = lsp_lib.create_config({}, {
+		whichkey = { { "<leader>m", group = "markdown" } },
 	}),
 	["neocmake"] = lsp_lib.create_config(),
 	["html"] = lsp_lib.create_config(),
@@ -252,16 +246,17 @@ formatter.ft = {
 	["yaml"] = { "prettier" },
 	["graphql"] = { "prettier" },
 	["handlebars"] = { "prettier" },
-	javascript = { { "prettierd", "prettier" } },
-	typescript = { { "prettierd", "prettier" } },
+	javascript = { "prettier" },
+	typescript = { "prettier" },
 	cs = { "clang-format" },
 	c = { "clang-format" },
 	cpp = { "clang-format" },
 	cmake = { "cmakelang" },
-	["markdown"] = { { "prettierd", "prettier" }, "markdownlint", "markdown-toc" },
-	["markdown.mdx"] = { { "prettierd", "prettier" }, "markdownlint", "markdown-toc" },
+	["markdown"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
+	["markdown.mdx"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
 }
 
+--- @type table<string, conform.FormatterConfigOverride|fun(bufnr: integer): nil|conform.FormatterConfigOverride>
 formatter.config = {
 	shfmt = {
 		prepend_args = { "-i", "2" },

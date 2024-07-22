@@ -393,28 +393,28 @@ plugins["which-key"] = {
 				g = true,
 			},
 		},
-		window = {
-			border = "none",
-			position = "bottom",
-			-- Leave 1 line at top / bottom for bufferline / lualine
-			margin = { 1, 0, 1, 0 },
-			padding = { 1, 0, 1, 0 },
-			winblend = 0,
-			zindex = 1000,
-		},
+		-- win = {
+		-- 	border = "none",
+		-- 	position = "bottom",
+		-- 	-- Leave 1 line at top / bottom for bufferline / lualine
+		-- 	margin = { 1, 0, 1, 0 },
+		-- 	padding = { 1, 0, 1, 0 },
+		-- 	winblend = 0,
+		-- 	zindex = 1000,
+		-- },
 	},
 	config = function(_, opts)
 		local wk = require("which-key")
-		wk.register({
-			["<leader>b"] = { name = "+buffer" },
-			["<leader>c"] = { name = "+lsp" },
-			["<leader>t"] = { name = "+telescope" },
-			["<leader>u"] = { name = "+utils" },
-			["<leader>n"] = { name = "+noice" },
-			["<leader>q"] = { name = "+session" },
-			["<leader>d"] = { name = "+debug" },
-			["<leader>e"] = { name = "+neotree" },
-			["gs"] = { name = "surround" },
+		wk.add({
+			{ "<leader>b", group = "buffer" },
+			{ "<leader>c", group = "lsp" },
+			{ "<leader>t", group = "telescope" },
+			{ "<leader>u", group = "utils" },
+			{ "<leader>n", group = "noice" },
+			{ "<leader>q", group = "session" },
+			{ "<leader>d", group = "debug" },
+			{ "<leader>e", group = "neotree" },
+			{ "gs", group = "surround" },
 		})
 		wk.setup(opts)
 	end,

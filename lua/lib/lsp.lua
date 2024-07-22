@@ -143,10 +143,10 @@ end
 
 --- @class ConfigOpts
 --- @field inherit_on_attach boolean|optvalue whether inherit on_attach function, default is true
---- @field extra optvalue  extra actions to process final config
+--- @field extra fun(final_conf: table)|nil extra actions to process final config
 --- @field inherit_keybindings boolean|optvalue whether inherit default keymaps, default is true
 --- @field keybindings table[]|optvalue lsp keybindings
---- @field whichkey table|optvalue which-key bindings
+--- @field whichkey wk.Spec[]|(fun(): wk.Spec[])|nil which-key bindings
 
 --- create new config based on default config
 --- @param append_tbl table|optvalue
@@ -169,18 +169,19 @@ lsp.create_config = function(append_tbl, opts)
 			end
 			if opts.inherit_keybindings then
 				lsp.key_attach(bufnr, lsp_default_keybindings)
-				require("which-key").register({
-					["<leader>x"] = { name = "+diagnostics" },
-					["<leader>c"] = { name = "+lsp" },
-				}, {
-					buffer = bufnr,
+				require("which-key").add({
+					{ "<leader>x", group = "diagnostics", buffer = bufnr },
+					{ "<leader>c", group = "lsp", buffer = bufnr },
 				})
 			end
 			if opts.keybindings then
 				lsp.key_attach(bufnr, opts.keybindings)
 			end
 			if opts.whichkey then
-				require("which-key").register(opts.whichkey, {
+				for _, value in ipairs(opts.whichkey) do
+					value.buffer = bufnr
+				end
+				require("which-key").add(opts.whichkey, {
 					buffer = bufnr,
 				})
 			end
