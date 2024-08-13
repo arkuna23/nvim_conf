@@ -4,7 +4,7 @@ local M = {}
 ---convert table elements to array
 ---@param table table
 ---@return table
-M.table2array = function(table)
+M.table_value2array = function(table)
 	local array = {}
 	for _, v in pairs(table) do
 		array[#array + 1] = v
@@ -43,6 +43,7 @@ end
 --- @param inputString string
 --- @return string
 string.trim_end = function(inputString)
+	---@diagnostic disable-next-line: undefined-field
 	local result, _ = inputString:gsub("[ \r\n]*$", "")
 	return result
 end
@@ -142,6 +143,7 @@ M.get_pkg_path = function(pkg, path, opts)
 	path = path or ""
 	local ret = root .. "/packages/" .. pkg .. "/" .. path
 	if opts.warn and not vim.loop.fs_stat(ret) then
+		---@diagnostic disable-next-line: undefined-field
 		M.log_warn(("Mason package path not found for **%s**:\n- `%s`"):format(pkg, path))
 	end
 	return ret

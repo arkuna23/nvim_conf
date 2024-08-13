@@ -1,12 +1,14 @@
-local plugins = {}
 local config = require("plugins.conf")
 local symbols = require("lib.symbols")
+
+---@type table<string, PlugSpec>
+local plugins = {}
 
 plugins["nvim-lspconfig"] = {
 	"neovim/nvim-lspconfig",
 	event = "User Load",
+	categories = "lsp",
 	dependencies = {
-		"williamboman/mason.nvim",
 		"williamboman/mason-lspconfig.nvim",
 	},
 	config = function(_, _)
@@ -24,17 +26,19 @@ plugins["nvim-lspconfig"] = {
 plugins["mason-lspconfig"] = {
 	"williamboman/mason-lspconfig.nvim",
 	lazy = true,
+	categories = "lsp",
 	dependencies = {
 		"williamboman/mason.nvim",
 	},
 	opts = {
-		ensure_installed = vim.tbl_extend("keep", table.keys(config.lsp), config.mason.packages),
+		ensure_installed = table.keys(config.lsp),
 	},
 }
 
 plugins["refactoring"] = {
 	"ThePrimeagen/refactoring.nvim",
 	event = "User Load",
+	categories = "lsp",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"nvim-treesitter/nvim-treesitter",
@@ -44,6 +48,7 @@ plugins["refactoring"] = {
 plugins["mason"] = {
 	"williamboman/mason.nvim",
 	event = "User Load",
+	categories = "lsp",
 	cmd = "Mason",
 	keys = { { "<leader>m", "<cmd>Mason<cr>", desc = "Mason" } },
 	build = ":MasonUpdate",
@@ -105,17 +110,18 @@ plugins["mason"] = {
 
 plugins["LuaSnip"] = {
 	"L3MON4D3/LuaSnip",
+	categories = "lsp",
 -- stylua: ignore
     keys = {
-      {
-        "<tab>",
-        function()
-          return require("luasnip").jumpable(1) and "<Plug>luasnip-jump-next" or "<tab>"
-        end,
-        expr = true, silent = true, mode = "i",
-      },
-      { "<tab>", function() require("luasnip").jump(1) end, mode = "s" },
-      { "<s-tab>", function() require("luasnip").jump(-1) end, mode = { "i", "s" } },
+        {
+            "<tab>",
+            function()
+                return require("luasnip").jumpable(1) and "<Plug>luasnip-jump-next" or "<tab>"
+            end,
+            expr = true, silent = true, mode = "i",
+        },
+        { "<tab>", function() require("luasnip").jump(1) end, mode = "s" },
+        { "<s-tab>", function() require("luasnip").jump(-1) end, mode = { "i", "s" } },
     },
 }
 

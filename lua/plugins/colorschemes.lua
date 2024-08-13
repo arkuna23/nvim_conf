@@ -1,9 +1,11 @@
 require("lib.util")
 
+---@type table<string, PlugSpec>
 local plugins = {}
 
 plugins["tokyonight"] = {
 	"folke/tokyonight.nvim",
+	categories = "colorschemes",
 	opts = {
 		style = "moon",
 		transparent = true,

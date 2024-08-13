@@ -1,10 +1,12 @@
 local symbols = require("lib.symbols")
 local config = require("plugins.conf")
 require("lib.util")
+---@type table<string, PlugSpec>
 local plugins = {}
 
 plugins["nvim-cmp"] = {
 	"hrsh7th/nvim-cmp",
+	categories = "editor",
 	dependencies = {
 		"L3MON4D3/LuaSnip",
 		"saadparwaiz1/cmp_luasnip",
@@ -14,11 +16,6 @@ plugins["nvim-cmp"] = {
 		"hrsh7th/cmp-cmdline",
 		"rafamadriz/friendly-snippets",
 		"onsails/lspkind-nvim",
-		-- copilot
-		{
-			"zbirenbaum/copilot-cmp",
-			dependencies = "copilot.lua",
-		},
 	},
 	keys = {
 		{
@@ -117,9 +114,33 @@ plugins["nvim-cmp"] = {
 	end,
 }
 
+plugins["sniprun"] = {
+	"michaelb/sniprun",
+	categories = "editor",
+	cmd = "SnipRun",
+	branch = "master",
+	build = "sh install.sh",
+	keys = {
+		{
+			"<leader>sr",
+			"<Cmd>SnipRun<CR>",
+			mode = "v",
+			desc = "SnipRun: run code",
+		},
+	},
+	opts = {
+		display = { "Terminal" },
+		display_options = {
+			terminal_position = "vertical",
+			terminal_width = 45,
+		},
+	},
+}
+
 -- formatting
 plugins["conform"] = {
 	"stevearc/conform.nvim",
+	categories = "editor",
 	event = { "User Load" },
 	cmd = { "ConformInfo" },
 	keys = {
@@ -129,7 +150,7 @@ plugins["conform"] = {
 			function()
 				require("conform").format({ async = true, lsp_fallback = true })
 			end,
-			mode = "",
+			mode = "n",
 			desc = "Format buffer",
 		},
 	},
@@ -160,6 +181,7 @@ plugins["conform"] = {
 
 plugins["nvim-treesitter"] = {
 	"nvim-treesitter/nvim-treesitter",
+	categories = "editor",
 	build = ":TSUpdate",
 	dependencies = { "hiphish/rainbow-delimiters.nvim" },
 	event = "User Load",
@@ -222,12 +244,14 @@ plugins["nvim-treesitter"] = {
 
 plugins["neoconf"] = {
 	"folke/neoconf.nvim",
+	categories = "editor",
 	cmd = "Neoconf",
 	opts = {},
 }
 
 plugins["nvim-autopairs"] = {
 	"windwp/nvim-autopairs",
+	categories = "editor",
 	event = "InsertEnter",
 	main = "nvim-autopairs",
 	opts = {},
@@ -235,6 +259,7 @@ plugins["nvim-autopairs"] = {
 
 plugins["mini-surround"] = {
 	"echasnovski/mini.surround",
+	categories = "editor",
 	recommended = true,
 	keys = {
 		{ "gsa", desc = "Add Surrounding", mode = { "n", "v" } },
@@ -259,6 +284,7 @@ plugins["mini-surround"] = {
 }
 plugins["mini.bufremove"] = {
 	"echasnovski/mini.bufremove",
+	categories = "editor",
 	keys = {
 		{
 			"<leader>bd",
@@ -285,6 +311,57 @@ plugins["mini.bufremove"] = {
 				require("mini.bufremove").delete(0, true)
 			end,
 			desc = "Delete Buffer (Force)",
+		},
+	},
+}
+plugins["img-clip"] = {
+	"HakonHarnes/img-clip.nvim",
+	categories = "editor",
+	opts = {
+		default = {
+			dir_path = "images",
+			relative_to_current_file = true,
+		},
+	},
+	keys = {
+		-- suggested keymap
+		{ "<leader>p", "<cmd>PasteImage<cr>", desc = "Paste image from system clipboard" },
+	},
+}
+
+-- session manager
+plugins["persistence"] = {
+	"folke/persistence.nvim",
+	categories = "editor",
+	event = "User Load",
+	cmd = "RestoreSession",
+	opts = { options = { "buffers", "curdir", "tabpages", "winsize", "help", "globals", "skiprtp" } },
+	init = function()
+		vim.api.nvim_create_user_command("RestoreSession", function()
+			require("persistence").load()
+		end, {})
+	end,
+	keys = {
+		{
+			"<leader>qs",
+			function()
+				require("persistence").load()
+			end,
+			desc = "Restore Session",
+		},
+		{
+			"<leader>ql",
+			function()
+				require("persistence").load({ last = true })
+			end,
+			desc = "Restore Last Session",
+		},
+		{
+			"<leader>qd",
+			function()
+				require("persistence").stop()
+			end,
+			desc = "Don't Save Current Session",
 		},
 	},
 }

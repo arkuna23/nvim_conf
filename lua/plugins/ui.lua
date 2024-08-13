@@ -1,6 +1,6 @@
-local util = require("lib.util")
 local symbols = require("lib.symbols")
 
+---@type table<string, PlugSpec>
 local plugins = {}
 
 local header = string.format(
@@ -25,6 +25,7 @@ welcome to nvim on %s!
 
 plugins["dashboard"] = {
 	"nvimdev/dashboard-nvim",
+	categories = "ui",
 	lazy = false,
 	opts = {
 		theme = "doom",
@@ -40,7 +41,7 @@ plugins["dashboard"] = {
 				{
 					icon = "  ",
 					desc = "Edit config",
-					action = "Neotree " .. util.config_root,
+					action = "Neotree " .. require("lib.util").config_root,
 				},
 				{
 					icon = "󰍉  ",
@@ -59,7 +60,7 @@ plugins["dashboard"] = {
 				},
 			},
 			footer = function()
-				local stats = util.get_startup_stats()
+				local stats = require("lib.util").get_startup_stats()
 				return {
 					string.format(
 						"⚡ loaded %d/%d plugins in %.2f ms on startup",
@@ -88,6 +89,7 @@ plugins["dashboard"] = {
 
 plugins["neo-tree"] = {
 	"nvim-neo-tree/neo-tree.nvim",
+	categories = "ui",
 	cmd = "Neotree",
 	branch = "v3.x",
 	dependencies = {
@@ -117,6 +119,7 @@ plugins["neo-tree"] = {
 				hide_gitignored = false,
 				hide_dotfiles = false,
 			},
+			use_libuv_file_watcher = true,
 		}
 	end,
 	config = function(_, opts)
@@ -142,6 +145,7 @@ local bufferline_theme = {
 
 plugins["bufferline"] = {
 	"akinsho/bufferline.nvim",
+	categories = "ui",
 	dependencies = {
 		"nvim-tree/nvim-web-devicons",
 		"echasnovski/mini.bufremove",
@@ -250,6 +254,7 @@ plugins["bufferline"] = {
 
 plugins["lualine"] = {
 	"nvim-lualine/lualine.nvim",
+	categories = "ui",
 	event = "User Load",
 	opts = function()
 		return {
@@ -302,6 +307,7 @@ plugins["lualine"] = {
 
 plugins["nvim-notify"] = {
 	"rcarriga/nvim-notify",
+	categories = "ui",
 	lazy = true,
 	event = "VeryLazy",
 	keys = {
@@ -330,6 +336,7 @@ plugins["nvim-notify"] = {
 
 plugins["noice"] = {
 	"folke/noice.nvim",
+	categories = "ui",
 	event = "VeryLazy",
 	enabled = true,
 	opts = {
@@ -374,6 +381,7 @@ plugins["noice"] = {
 
 plugins["which-key"] = {
 	"folke/which-key.nvim",
+	categories = "ui",
 	event = { "User Load" },
 	keys = { "<leader>" },
 	opts = {
@@ -422,6 +430,7 @@ plugins["which-key"] = {
 
 plugins["trouble"] = {
 	"folke/trouble.nvim",
+	categories = "ui",
 	branch = "main",
 	cmd = "Trouble",
 	dependencies = { "nvim-tree/nvim-web-devicons" },
@@ -430,7 +439,7 @@ plugins["trouble"] = {
 
 plugins["telescope"] = {
 	"nvim-telescope/telescope.nvim",
-	enabled = true,
+	categories = "ui",
 	cmd = { "Telescope" },
 	dependencies = {
 		"nvim-lua/plenary.nvim",
@@ -488,6 +497,7 @@ plugins["telescope"] = {
 plugins["dressing"] = {
 	"stevearc/dressing.nvim",
 	lazy = true,
+	categories = "ui",
 	init = function()
 		---@diagnostic disable-next-line: duplicate-set-field
 		vim.ui.select = function(...)
@@ -504,6 +514,7 @@ plugins["dressing"] = {
 
 plugins["toggleterm"] = {
 	"akinsho/toggleterm.nvim",
+	categories = "ui",
 	version = "*",
 	cmd = { "ToggleTerm" },
     -- stylua: ignore

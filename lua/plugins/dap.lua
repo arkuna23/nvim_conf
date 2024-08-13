@@ -1,8 +1,10 @@
+---@type table<string, PlugSpec>
 local plugins = {}
 
 plugins["nvim-dap"] = {
 	"mfussenegger/nvim-dap",
 	recommended = true,
+	categories = "dap",
 	desc = "Debugging support. Requires language specific adapters to be configured. (see lang extras)",
 	dependencies = {
 
@@ -31,13 +33,10 @@ plugins["nvim-dap"] = {
 				end
 			end,
 		},
-
 		-- virtual text for the debugger
 		{
 			"theHamsta/nvim-dap-virtual-text",
-			opts = {},
 		},
-
 		-- mason.nvim integration
 		{
 			"jay-babu/mason-nvim-dap.nvim",

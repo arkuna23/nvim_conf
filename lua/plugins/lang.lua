@@ -2,11 +2,14 @@ local config = require("plugins.conf")
 local symbols = require("lib.symbols")
 local lsp_lib = require("lib.lsp")
 local pdf = require("lib.pdf")
+
+---@type table<string, PlugSpec>
 local plugins = {}
 
 -- ts
 plugins["nvim-ts-autotag"] = {
 	"windwp/nvim-ts-autotag",
+	categories = { "lang", "html" },
 	ft = config.autotag_ft,
 	opts = function()
 		local filetypes = {}
@@ -24,6 +27,7 @@ plugins["nvim-ts-autotag"] = {
 -- rust
 plugins["rustaceanvim"] = {
 	"mrcjkb/rustaceanvim",
+	categories = { "lang", "rust" },
 	version = "^4", -- Recommended
 	ft = { "rust" },
 	build = "rustup component add rust-analyzer",
@@ -65,6 +69,7 @@ plugins["rustaceanvim"] = {
 
 plugins["crates"] = {
 	"Saecki/crates.nvim",
+	categories = { "lang", "rust" },
 	event = { "BufRead Cargo.toml" },
 	opts = {
 		completion = {
@@ -76,6 +81,7 @@ plugins["crates"] = {
 -- json
 plugins["SchemaStore"] = {
 	"b0o/SchemaStore.nvim",
+	categories = { "lang", "json" },
 	lazy = true,
 	version = false, -- last release is way too old
 }
@@ -83,6 +89,7 @@ plugins["SchemaStore"] = {
 -- markdown
 plugins["markdown-preview"] = {
 	"iamcco/markdown-preview.nvim",
+	categories = { "lang", "markdown" },
 	cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
 	build = function()
 		vim.fn["mkdp#util#install"]()
@@ -103,6 +110,7 @@ plugins["markdown-preview"] = {
 
 plugins["headlines"] = {
 	"lukas-reineke/headlines.nvim",
+	categories = { "lang", "markdown" },
 	opts = function()
 		local opts = {}
 		for _, ft in ipairs({ "markdown", "norg", "rmd", "org" }) do
@@ -132,6 +140,7 @@ plugins["headlines"] = {
 -- c/cpp
 plugins["clangd_extensions"] = {
 	"p00f/clangd_extensions.nvim",
+	categories = { "lang", "c/cpp" },
 	lazy = true,
 	ft = "c",
 	config = function() end,
@@ -164,6 +173,7 @@ plugins["clangd_extensions"] = {
 
 plugins["cmake-tools"] = {
 	"Civitasv/cmake-tools.nvim",
+	categories = { "lang", "c/cpp" },
 	dependencies = {
 		"akinsho/toggleterm.nvim",
 	},
@@ -179,6 +189,7 @@ plugins["cmake-tools"] = {
 -- tex
 plugins["vimtex"] = {
 	"lervag/vimtex",
+	categories = { "lang", "tex" },
 	ft = "tex",
 	config = function()
 		vim.g.vimtex_view_automatic = 0
@@ -193,14 +204,13 @@ plugins["vimtex"] = {
 }
 
 -- lua
-plugins["luvit-meta"] = {
-	"Bilal2453/luvit-meta",
-	lazy = true,
-}
-
 plugins["lazydev"] = {
 	"folke/lazydev.nvim",
+	categories = { "lang", "lua" },
 	ft = "lua",
+	dependencies = {
+		"Bilal2453/luvit-meta",
+	},
 	opts = {
 		library = {
 			{ path = "luvit-meta/library", words = { "vim%.uv" } },

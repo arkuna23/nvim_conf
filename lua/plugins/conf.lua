@@ -110,9 +110,20 @@ config.lsp = {
 			on_new_config = function(new_config)
 				new_config.settings.json.schemas = new_config.settings.json.schemas or {}
 				vim.list_extend(new_config.settings.json.schemas, require("schemastore").json.schemas())
+				vim.notify(vim.fn.stdpath("data") .. "/plug_schema.json")
 			end,
 			settings = {
 				json = {
+					schemas = require("schemastore").json.schemas({
+						extra = {
+							{
+								description = "plugin switchs schema",
+								fileMatch = { "plugins_loaded.json" },
+								name = "plugins_loaded.json",
+								url = vim.fn.stdpath("data") .. "/plug_schema.json",
+							},
+						},
+					}),
 					format = {
 						enable = true,
 					},
@@ -265,7 +276,7 @@ formatter.config = {
 		prepend_args = function(_, ctx)
 			local file = vim.fs.find(".clang-format", { upward = true, path = ctx.dirname, type = "file" })[1]
 			if not file then
-				file = util.config_root .. "/.clang-format"
+				file = util.config_root .. "/conf/.clang-format"
 			end
 
 			return {
@@ -295,7 +306,7 @@ formatter.config = {
 
 			return {
 				"--config",
-				util.config_root .. "/.prettierrc.json",
+				util.config_root .. "/conf/.prettierrc.json",
 			}
 		end,
 	},
