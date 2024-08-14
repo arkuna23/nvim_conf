@@ -21,7 +21,8 @@ plugins["nvim-cmp"] = {
 		{
 			"<Tab>",
 			function()
-				return vim.snippet.active({ direction = 1 }) and "<cmd>lua vim.snippet.jump(1)<cr>" or "<Tab>"
+				return vim.snippet.active({ direction = 1 }) and "<cmd>lua vim.snippet.jump(1)<cr>"
+					or "<Tab>"
 			end,
 			expr = true,
 			silent = true,
@@ -30,7 +31,9 @@ plugins["nvim-cmp"] = {
 		{
 			"<S-Tab>",
 			function()
-				return vim.snippet.active({ direction = -1 }) and "<cmd>lua vim.snippet.jump(-1)<cr>" or "<Tab>"
+				return vim.snippet.active({ direction = -1 })
+						and "<cmd>lua vim.snippet.jump(-1)<cr>"
+					or "<Tab>"
 			end,
 			expr = true,
 			silent = true,
@@ -171,7 +174,9 @@ plugins["conform"] = {
 			pattern = "*",
 			callback = function(args)
 				local filetype = vim.bo[args.buf].filetype
-				if not table.list_contains(config.formatter.format_on_save_exclude_ft, filetype) then
+				if
+					not table.list_contains(config.formatter.format_on_save_exclude_ft, filetype)
+				then
 					require("conform").format({ bufnr = args.buf })
 				end
 			end,
@@ -291,8 +296,10 @@ plugins["mini.bufremove"] = {
 			function()
 				local bd = require("mini.bufremove").delete
 				if vim.bo.modified then
-					local choice =
-						vim.fn.confirm(("Save changes to %q?"):format(vim.fn.bufname()), "&Yes\n&No\n&Cancel")
+					local choice = vim.fn.confirm(
+						("Save changes to %q?"):format(vim.fn.bufname()),
+						"&Yes\n&No\n&Cancel"
+					)
 					if choice == 1 then -- Yes
 						vim.cmd.write()
 						bd(0)
@@ -335,7 +342,9 @@ plugins["persistence"] = {
 	categories = "editor",
 	event = "User Load",
 	cmd = "RestoreSession",
-	opts = { options = { "buffers", "curdir", "tabpages", "winsize", "help", "globals", "skiprtp" } },
+	opts = {
+		options = { "buffers", "curdir", "tabpages", "winsize", "help", "globals", "skiprtp" },
+	},
 	init = function()
 		vim.api.nvim_create_user_command("RestoreSession", function()
 			require("persistence").load()

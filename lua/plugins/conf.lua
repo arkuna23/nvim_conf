@@ -73,9 +73,10 @@ config.lsp = {
 				"meson.build",
 				"meson_options.txt",
 				"build.ninja"
-			)(fname) or require("lspconfig.util").root_pattern("compile_commands.json", "compile_flags.txt")(fname) or require(
-				"lspconfig.util"
-			).find_git_ancestor(fname)
+			)(fname) or require("lspconfig.util").root_pattern(
+				"compile_commands.json",
+				"compile_flags.txt"
+			)(fname) or require("lspconfig.util").find_git_ancestor(fname)
 		end,
 		capabilities = {
 			offsetEncoding = { "utf-16" },
@@ -97,7 +98,12 @@ config.lsp = {
 	}, {
 		inherit_on_attach = true,
 		keybindings = {
-			{ "<leader>ch", "<cmd>ClangdSwitchSourceHeader<cr>", "n", "Switch Source/Header (C/C++)" },
+			{
+				"<leader>ch",
+				"<cmd>ClangdSwitchSourceHeader<cr>",
+				"n",
+				"Switch Source/Header (C/C++)",
+			},
 		},
 		whichkey = {
 			{ "<leader>c", group = "clangd" },
@@ -109,8 +115,10 @@ config.lsp = {
 			-- lazy-load schemastore when needed
 			on_new_config = function(new_config)
 				new_config.settings.json.schemas = new_config.settings.json.schemas or {}
-				vim.list_extend(new_config.settings.json.schemas, require("schemastore").json.schemas())
-				vim.notify(vim.fn.stdpath("data") .. "/plug_schema.json")
+				vim.list_extend(
+					new_config.settings.json.schemas,
+					require("schemastore").json.schemas()
+				)
 			end,
 			settings = {
 				json = {
@@ -154,7 +162,10 @@ config.lsp = {
 		return {
 			init_options = {
 				typescript = {
-					tsdk = util.get_pkg_path("typescript-language-server", "node_modules/typescript/lib"),
+					tsdk = util.get_pkg_path(
+						"typescript-language-server",
+						"node_modules/typescript/lib"
+					),
 				},
 			},
 		}
@@ -167,7 +178,8 @@ config.lsp = {
 		inherit_keybindings = false,
 	}),
 	["tsserver"] = lsp_lib.create_config(function()
-		local volar_path = util.get_pkg_path("vue-language-server", "node_modules/@vue/language-server")
+		local volar_path =
+			util.get_pkg_path("vue-language-server", "node_modules/@vue/language-server")
 		return {
 			init_options = {
 				plugins = {
@@ -274,7 +286,10 @@ formatter.config = {
 	},
 	["clang-format"] = {
 		prepend_args = function(_, ctx)
-			local file = vim.fs.find(".clang-format", { upward = true, path = ctx.dirname, type = "file" })[1]
+			local file = vim.fs.find(
+				".clang-format",
+				{ upward = true, path = ctx.dirname, type = "file" }
+			)[1]
 			if not file then
 				file = util.config_root .. "/conf/.clang-format"
 			end
@@ -298,7 +313,8 @@ formatter.config = {
 			}
 
 			for _, file in ipairs(config_files) do
-				local matches = vim.fs.find(file, { upward = true, path = ctx.dirname, type = "file" })
+				local matches =
+					vim.fs.find(file, { upward = true, path = ctx.dirname, type = "file" })
 				if #matches > 0 then
 					return {}
 				end

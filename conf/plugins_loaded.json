@@ -1,0 +1,12 @@
+{
+    "colorschemes": {
+        "enabled": ["tokyonight"]
+    },
+    "ui": true,
+    "etc": true,
+    "dap": true,
+    "lsp": true,
+    "lang": true,
+    "editor": true,
+    "ai": {}
+}

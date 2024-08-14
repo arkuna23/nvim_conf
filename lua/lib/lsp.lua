@@ -109,7 +109,7 @@ end
 
 local lsp_default_config = function()
 	return {
-		capabilities = require("cmp_nvim_lsp").default_capabilities,
+		capabilities = require("cmp_nvim_lsp").default_capabilities(),
 		flags = lsp_default_flags,
 		-- default attach actions
 		on_attach = lsp_default_on_attach,

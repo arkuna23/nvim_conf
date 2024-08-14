@@ -9,7 +9,7 @@ opt.number = true
 opt.relativenumber = true
 opt.clipboard:append("unnamedplus")
 opt.signcolumn = "yes"
-opt.colorcolumn = "80"
+opt.colorcolumn = "100"
 
 opt.tabstop = 4
 opt.softtabstop = 4
