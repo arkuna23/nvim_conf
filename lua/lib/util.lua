@@ -59,7 +59,8 @@ os.file_exists = function(file)
 end
 
 os.get_os_release = function()
-	local file = io.popen("cat /etc/*-release | grep '^PRETTY_NAME=' | awk -F'=' '{print $2}' | tr -d '\"'")
+	local file =
+		io.popen("cat /etc/*-release | grep '^PRETTY_NAME=' | awk -F'=' '{print $2}' | tr -d '\"'")
 	assert(file, "invalid os")
 	local distro = string.trim_end(file:read("*a"))
 	file:close()
@@ -70,7 +71,11 @@ os.get_os_release = function()
 end
 
 os.get_username = function()
-	return os.getenv("USER")
+	local user = os.getenv("USER")
+	os.get_username = function()
+		return user
+	end
+	return os.get_username()
 end
 
 M.get_startup_stats = function()

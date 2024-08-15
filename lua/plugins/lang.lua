@@ -1,8 +1,3 @@
-local config = require("plugins.conf")
-local symbols = require("lib.symbols")
-local lsp_lib = require("lib.lsp")
-local pdf = require("lib.pdf")
-
 ---@type table<string, PlugSpec>
 local plugins = {}
 
@@ -10,10 +5,12 @@ local plugins = {}
 plugins["nvim-ts-autotag"] = {
 	"windwp/nvim-ts-autotag",
 	categories = { "lang", "html" },
-	ft = config.autotag_ft,
+	ft = function()
+		return require("plugins.conf").autotag_ft
+	end,
 	opts = function()
 		local filetypes = {}
-		for _, ft in pairs(config.autotag_ft) do
+		for _, ft in pairs(require("plugins.conf").autotag_ft) do
 			filetypes[ft] = {
 				enable_close = true,
 			}
@@ -31,37 +28,39 @@ plugins["rustaceanvim"] = {
 	version = "^4", -- Recommended
 	ft = { "rust" },
 	build = "rustup component add rust-analyzer",
-	opts = {
-		server = {
-			on_attach = function(_, bufnr)
-				lsp_lib.key_attach(bufnr)
-			end,
-			default_settings = {
-				-- rust-analyzer language server configuration
-				["rust-analyzer"] = {
-					cargo = {
-						allFeatures = true,
-						loadOutDirsFromCheck = true,
-						runBuildScripts = true,
-					},
-					-- Add clippy lints for Rust.
-					checkOnSave = {
-						allFeatures = true,
-						command = "clippy",
-						extraArgs = { "--no-deps" },
-					},
-					procMacro = {
-						enable = true,
-						ignored = {
-							["async-trait"] = { "async_trait" },
-							["napi-derive"] = { "napi" },
-							["async-recursion"] = { "async_recursion" },
+	opts = function()
+		return {
+			server = {
+				on_attach = function(_, bufnr)
+					require("lib.lsp").key_attach(bufnr)
+				end,
+				default_settings = {
+					-- rust-analyzer language server configuration
+					["rust-analyzer"] = {
+						cargo = {
+							allFeatures = true,
+							loadOutDirsFromCheck = true,
+							runBuildScripts = true,
+						},
+						-- Add clippy lints for Rust.
+						checkOnSave = {
+							allFeatures = true,
+							command = "clippy",
+							extraArgs = { "--no-deps" },
+						},
+						procMacro = {
+							enable = true,
+							ignored = {
+								["async-trait"] = { "async_trait" },
+								["napi-derive"] = { "napi" },
+								["async-recursion"] = { "async_recursion" },
+							},
 						},
 					},
 				},
 			},
-		},
-	},
+		}
+	end,
 	config = function(_, opts)
 		vim.g.rustaceanvim = vim.tbl_deep_extend("keep", vim.g.rustaceanvim or {}, opts or {})
 	end,
@@ -144,31 +143,34 @@ plugins["clangd_extensions"] = {
 	lazy = true,
 	ft = "c",
 	config = function() end,
-	opts = {
-		inlay_hints = {
-			inline = false,
-		},
-		ast = {
-			--These require codicons (https://github.com/microsoft/vscode-codicons)
-			role_icons = {
-				type = symbols.Type,
-				declaration = symbols.Declaration,
-				expression = symbols.Circle,
-				specifier = symbols.ListTree,
-				statement = symbols.SymbolEvent,
-				["template argument"] = symbols.Template,
+	opts = function()
+		local symbols = require("lib.symbols")
+		return {
+			inlay_hints = {
+				inline = false,
 			},
-			kind_icons = {
-				Compound = symbols.Namespace,
-				Recovery = symbols.Error,
-				TranslationUnit = symbols.CodeFile,
-				PackExpansion = symbols.Ellipsis,
-				TemplateTypeParm = symbols.Template,
-				TemplateTemplateParm = symbols.Template,
-				TemplateParamObject = symbols.Template,
+			ast = {
+				--These require codicons (https://github.com/microsoft/vscode-codicons)
+				role_icons = {
+					type = symbols.Type,
+					declaration = symbols.Declaration,
+					expression = symbols.Circle,
+					specifier = symbols.ListTree,
+					statement = symbols.SymbolEvent,
+					["template argument"] = symbols.Template,
+				},
+				kind_icons = {
+					Compound = symbols.Namespace,
+					Recovery = symbols.Error,
+					TranslationUnit = symbols.CodeFile,
+					PackExpansion = symbols.Ellipsis,
+					TemplateTypeParm = symbols.Template,
+					TemplateTemplateParm = symbols.Template,
+					TemplateParamObject = symbols.Template,
+				},
 			},
-		},
-	},
+		}
+	end,
 }
 
 plugins["cmake-tools"] = {
@@ -198,7 +200,7 @@ plugins["vimtex"] = {
 		vim.api.nvim_create_autocmd("User", {
 			once = true,
 			pattern = "Load",
-			callback = pdf.server_setup,
+			callback = require("lib.pdf").server_setup,
 		})
 	end,
 }

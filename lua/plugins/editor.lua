@@ -1,6 +1,3 @@
-local symbols = require("lib.symbols")
-local config = require("plugins.conf")
-require("lib.util")
 ---@type table<string, PlugSpec>
 local plugins = {}
 
@@ -46,7 +43,7 @@ plugins["nvim-cmp"] = {
 		lspkind.init({
 			mode = "symbol",
 			preset = "codicons",
-			symbol_map = symbols,
+			symbol_map = require("lib.symbols"),
 		})
 
 		local cmp = require("cmp")
@@ -158,12 +155,15 @@ plugins["conform"] = {
 		},
 	},
 	-- Everything in opts will be passed to setup()
-	opts = {
-		-- Define your formatters
-		formatters_by_ft = config.formatter.ft,
-		-- Customize formatters
-		formatters = config.formatter.config,
-	},
+	opts = function()
+		local config = require("plugins.conf")
+		return {
+			-- Define your formatters
+			formatters_by_ft = config.formatter().ft,
+			-- Customize formatters
+			formatters = config.formatter().config,
+		}
+	end,
 	init = function()
 		-- If you want the formatexpr, here is the place to set it
 		vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
@@ -175,7 +175,10 @@ plugins["conform"] = {
 			callback = function(args)
 				local filetype = vim.bo[args.buf].filetype
 				if
-					not table.list_contains(config.formatter.format_on_save_exclude_ft, filetype)
+					not table.list_contains(
+						require("plugins.conf").formatter().format_on_save_exclude_ft,
+						filetype
+					)
 				then
 					require("conform").format({ bufnr = args.buf })
 				end
@@ -191,30 +194,32 @@ plugins["nvim-treesitter"] = {
 	dependencies = { "hiphish/rainbow-delimiters.nvim" },
 	event = "User Load",
 	main = "nvim-treesitter",
-	opts = {
-		ensure_installed = config.treesitter,
-		highlight = {
-			enable = true,
-			additional_vim_regex_highlighting = false,
-			disable = {
-				"latex",
+	opts = function()
+		return {
+			ensure_installed = require("plugins.conf").treesitter,
+			highlight = {
+				enable = true,
+				additional_vim_regex_highlighting = false,
+				disable = {
+					"latex",
+				},
 			},
-		},
-		incremental_selection = {
-			enable = true,
-			keymaps = {
-				init_selection = "<CR>",
-				node_incremental = "<CR>",
-				node_decremental = "<BS>",
-				scope_incremental = "<TAB>",
+			incremental_selection = {
+				enable = true,
+				keymaps = {
+					init_selection = "<CR>",
+					node_incremental = "<CR>",
+					node_decremental = "<BS>",
+					scope_incremental = "<TAB>",
+				},
 			},
-		},
-		indent = {
-			enable = true,
-			-- conflicts with flutter-tools.nvim, causing performance issues
-			disable = { "dart" },
-		},
-	},
+			indent = {
+				enable = true,
+				-- conflicts with flutter-tools.nvim, causing performance issues
+				disable = { "dart" },
+			},
+		}
+	end,
 	config = function(_, opts)
 		require("nvim-treesitter.install").prefer_git = true
 		require("nvim-treesitter.configs").setup(opts)

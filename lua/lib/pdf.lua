@@ -1,8 +1,4 @@
 ---@diagnostic disable-next-line: unused-local
-local util = require("lib.util")
-local async_lib = require("lib.async")
-local notify = require("lib.notify")
-
 local server_version = "v0.1.0"
 local server_dir = vim.fn.stdpath("data") .. "/pdf-prev-server"
 local server_path = server_dir .. "/pdf-preview-server"
@@ -60,7 +56,8 @@ end
 
 ---stop pdf viewer server
 function PDFViewer:stop()
-	vim.system({ "curl", "-X", "POST", "http://127.0.0.1:" .. self.pdf_preview_port .. "/stop" }):wait()
+	vim.system({ "curl", "-X", "POST", "http://127.0.0.1:" .. self.pdf_preview_port .. "/stop" })
+		:wait()
 	self.server = nil
 end
 
@@ -68,10 +65,15 @@ local buffers = {}
 
 local server_setup = function()
 	local async = require("plenary.async")
+	local notify = require("lib.notify")
+	local async_lib = require("lib.async")
 
 	-- download
 	local download = function(pack_name, succ_fn)
-		local noti = notify.ProgressNotification:create("Download Server", "Downloading pdf preview server...")
+		local noti = notify.ProgressNotification:create(
+			"Download Server",
+			"Downloading pdf preview server..."
+		)
 
 		if not vim.uv.fs_stat(server_dir .. "/" .. pack_name) then
 			local out = async_lib.system({

@@ -46,7 +46,11 @@ end
 
 M.plugin_enabled = function()
 	---@diagnostic disable-next-line: undefined-field
-	return vim.uv.fs_stat(flag_path)
+    local state = vim.uv.fs_stat(flag_path)
+    M.plugin_enabled = function ()
+        return state
+    end
+	return M.plugin_enabled()
 end
 
 M.toggle_plugin_enabled = function()

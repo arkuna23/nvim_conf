@@ -1,4 +1,3 @@
-local util = require("lib.util")
 local lsp = {}
 
 local lsp_default_flags = {
@@ -10,25 +9,55 @@ local lsp_default_keybindings = {
 	["definitions"] = { "gd", "<cmd>Telescope lsp_definitions<CR>", "n", "Goto Definitions" }, -- Goto Definition
 	["references"] = { "gr", "<cmd>Telescope lsp_references<CR>", "n", "References" }, -- References
 	["declaration"] = { "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>", "n", "Goto Declaration" }, -- Goto Declaration
-	["type_implementations"] = { "gI", "<cmd>Telescope lsp_implementations<CR>", "n", "Goto Implementations" }, -- Goto Implementation
-	["type_definitions"] = { "gy", "<cmd>Telescope lsp_type_definitions<CR>", "n", "Goto Type Definitions" }, -- Goto Type Definition
+	["type_implementations"] = {
+		"gI",
+		"<cmd>Telescope lsp_implementations<CR>",
+		"n",
+		"Goto Implementations",
+	}, -- Goto Implementation
+	["type_definitions"] = {
+		"gy",
+		"<cmd>Telescope lsp_type_definitions<CR>",
+		"n",
+		"Goto Type Definitions",
+	}, -- Goto Type Definition
 	["hover"] = { "T", "<cmd>lua vim.lsp.buf.hover()<CR>", "n", "Hover" }, -- Hover
-	["signature_help"] = { "gK", "<cmd>lua vim.lsp.buf.signature_help()<CR>", "n", "Signature Help" }, -- Signature Help
+	["signature_help"] = {
+		"gK",
+		"<cmd>lua vim.lsp.buf.signature_help()<CR>",
+		"n",
+		"Signature Help",
+	}, -- Signature Help
 	["signature_help_insert"] = {
 		"<c-k>",
 		"<cmd>lua vim.lsp.buf.signature_help()<CR>",
 		"i",
 		"Signature Help (Insert mode)",
 	}, -- Signature Help (Insert mode)
-	["code_action"] = { "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", "n,v", "Code Action" }, -- Code Action
-	["run_codelens"] = { "<leader>cc", "<cmd>lua vim.lsp.codelens.run()<CR>", "n,v", "Run Codelens" }, -- Run Codelens
+	["code_action"] = {
+		"<leader>ca",
+		"<cmd>lua vim.lsp.buf.code_action()<CR>",
+		"n,v",
+		"Code Action",
+	}, -- Code Action
+	["run_codelens"] = {
+		"<leader>cc",
+		"<cmd>lua vim.lsp.codelens.run()<CR>",
+		"n,v",
+		"Run Codelens",
+	}, -- Run Codelens
 	["refresh_codelens"] = {
 		"<leader>cC",
 		"<cmd>lua vim.lsp.codelens.refresh()<CR>",
 		"n",
 		"Refresh & Display Codelens",
 	}, -- Refresh & Display Codelens
-	["source_action"] = { "<leader>cA", "<cmd>lua vim.lsp.buf.source_action()<CR>", "n", "Source Action" }, -- Source Action
+	["source_action"] = {
+		"<leader>cA",
+		"<cmd>lua vim.lsp.buf.source_action()<CR>",
+		"n",
+		"Source Action",
+	}, -- Source Action
 	["rename"] = { "<leader>cr", "<cmd>lua vim.lsp.buf.rename()<CR>", "n", "Rename" }, -- Rename
 	["document_diagnostic"] = {
 		"<leader>xx",
@@ -153,6 +182,7 @@ end
 --- @param opts ConfigOpts|nil
 lsp.create_config = function(append_tbl, opts)
 	return function()
+		local util = require("lib.util")
 		append_tbl = util.parse_dyn_value(append_tbl)
 		append_tbl = append_tbl or {}
 
