@@ -8,16 +8,20 @@ plugins["wakatime"] = {
 	cmd = "WakaTimeApiKey",
 }
 
+-- copilot
 plugins["copilot-cmp"] = {
 	"zbirenbaum/copilot-cmp",
-	categories = "ai",
-	dependencies = "copilot.lua",
+	categories = { "ai", "copilot" },
+	dependencies = {
+		"copilot.lua",
+		"hrsh7th/nvim-cmp",
+	},
 	event = { "InsertEnter", "CmdlineEnter" },
 }
 
 plugins["copilot"] = {
 	"zbirenbaum/copilot.lua",
-	categories = "ai",
+	categories = { "ai", "copilot" },
 	cmd = "Copilot",
 	build = ":Copilot auth",
 	opts = {
@@ -31,6 +35,23 @@ plugins["copilot"] = {
 			rust = true,
 		},
 	},
+}
+
+-- codeium
+plugins["codeium"] = {
+	"Exafunction/codeium.nvim",
+	categories = { "ai", "codeium" },
+	build = ":Codeium Auth",
+	cmd = "Codeium",
+	dependencies = {
+		"nvim-lua/plenary.nvim",
+		"hrsh7th/nvim-cmp",
+	},
+	opts = function(_, _)
+		return {
+			enable_chat = true,
+		}
+	end,
 }
 
 -- lib

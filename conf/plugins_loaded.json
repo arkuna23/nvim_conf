@@ -8,5 +8,7 @@
     "lsp": true,
     "lang": true,
     "editor": true,
-    "ai": {}
+    "ai": {
+        "codeium": true
+    }
 }

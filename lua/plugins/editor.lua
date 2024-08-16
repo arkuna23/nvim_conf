@@ -61,6 +61,7 @@ plugins["nvim-cmp"] = {
 				{ name = "luasnip" },
 				{ name = "crates" },
 				{ name = "copilot" },
+				{ name = "codeium" },
 			}, {
 				{ name = "buffer" },
 				{ name = "path" },

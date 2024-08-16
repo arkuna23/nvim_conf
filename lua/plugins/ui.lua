@@ -41,7 +41,7 @@ plugins["dashboard"] = {
 					},
 					{
 						icon = "󰍉  ",
-						desc = "find files(Telescope)",
+						desc = "Find files(Telescope)",
 						action = "Telescope find_files",
 					},
 					{
@@ -352,6 +352,7 @@ plugins["noice"] = {
 	"folke/noice.nvim",
 	categories = "ui",
 	event = "VeryLazy",
+	version = "4.4.7",
 	enabled = true,
 	opts = {
 		lsp = {

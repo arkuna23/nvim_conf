@@ -9,10 +9,19 @@ local function trigger_user_load()
 	util.nvim_loaded = true
 end
 
+local function load_theme()
+	require(COLORSCHEME)
+	vim.cmd("colorscheme " .. COLORSCHEME)
+	if vim.g.neovide then
+		require("config.vide").setup()
+	end
+end
+
 -- User Load: triggered when editing a file
 vim.api.nvim_create_autocmd("User", {
 	pattern = "VeryLazy",
 	callback = function()
+		load_theme()
 		if vim.bo.filetype == "dashboard" then
 			vim.api.nvim_create_autocmd("BufRead", {
 				once = true,
@@ -21,18 +30,6 @@ vim.api.nvim_create_autocmd("User", {
 		else
 			trigger_user_load()
 		end
-	end,
-})
-
--- lazy load theme
-vim.api.nvim_create_autocmd("User", {
-	pattern = "VeryLazy",
-	callback = function()
-		require(COLORSCHEME)
-		vim.cmd("colorscheme " .. COLORSCHEME)
-        if vim.g.neovide then
-            require('config.vide').setup()
-        end
 	end,
 })
 
