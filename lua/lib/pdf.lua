@@ -15,11 +15,12 @@ function PDFViewer:run(filename)
 	end
 
 	local server = vim.fn.jobstart({ server_path, filename, self.pdf_preview_port }, {
-		cwd = vim.fn.getcwd(),
 		on_exit = function(_, return_val)
 			if return_val ~= 0 then
 				vim.notify("pdf live preview exited with code " .. return_val)
 			end
+			self.server = nil
+			self._buffer = nil
 		end,
 	})
 	self.filename = filename
@@ -58,10 +59,7 @@ end
 function PDFViewer:stop()
 	vim.system({ "curl", "-X", "POST", "http://127.0.0.1:" .. self.pdf_preview_port .. "/stop" })
 		:wait()
-	self.server = nil
 end
-
-local buffers = {}
 
 local server_setup = function()
 	local async = require("plenary.async")
@@ -130,9 +128,8 @@ return {
 	PDFViewer = PDFViewer,
 	latex_preview = function()
 		local bufname = vim.api.nvim_buf_get_name(0)
-		if not buffers[bufname] then
+		if bufname ~= PDFViewer._buffer then
 			vim.cmd("VimtexCompile")
-			buffers[bufname] = true
 		end
 		PDFViewer:open(bufname:gsub("%.%w+$", ".pdf"), bufname)
 	end,

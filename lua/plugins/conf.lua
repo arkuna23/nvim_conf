@@ -151,7 +151,7 @@ config.lsp = function()
 		texlab = lsp_lib.create_config({}, {
 			inherit_on_attach = true,
 			keybindings = {
-				{ "<leader>ll", pdf.latex_preview, "n", "Vimtex preview" },
+				{ "<leader>lv", "<plug>(vimtex-view)", "n", "Vimtex preview" },
 				{ "<leader>lc", "<plug>(vimtex-compile)", "n", "Vimtex compile" },
 				{ "<leader>ld", "<plug>(vimtex-doc-package)", "n", "Vimtex Docs" },
 			},

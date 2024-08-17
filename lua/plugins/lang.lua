@@ -194,14 +194,14 @@ plugins["vimtex"] = {
 	categories = { "lang", "tex" },
 	ft = "tex",
 	config = function()
-		vim.g.vimtex_view_automatic = 0
+		vim.g.vimtex_view_method = "zathura"
 		vim.g.vimtex_quickfix_open_on_warning = 0
 		vim.g.vimtex_quickfix_method = vim.fn.executable("pplatex") == 1 and "pplatex" or "latexlog"
-		vim.api.nvim_create_autocmd("User", {
-			once = true,
-			pattern = "Load",
-			callback = require("lib.pdf").server_setup,
-		})
+		--vim.api.nvim_create_autocmd("User", {
+		--	once = true,
+		--	pattern = "Load",
+		--	callback = require("lib.pdf").server_setup,
+		--})
 	end,
 }
 
