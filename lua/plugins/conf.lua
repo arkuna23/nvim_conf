@@ -1,9 +1,10 @@
 local config = {}
 
+local php_lsp = "intelephense"
+
 -- lsp configs
 config.lsp = function()
 	local lsp_lib = require("lib.lsp")
-	local pdf = require("lib.pdf")
 	local util = require("lib.util")
 	local conf = {
 		lua_ls = lsp_lib.create_config({
@@ -210,6 +211,12 @@ config.lsp = function()
 		["taplo"] = lsp_lib.create_config(),
 	}
 
+	if php_lsp == "intelephense" then
+		conf.intelephense = lsp_lib.create_config()
+	elseif php_lsp == "phpactor" then
+		conf.phpactor = lsp_lib.create_config()
+	end
+
 	config.lsp = function()
 		return conf
 	end
@@ -222,6 +229,7 @@ config.treesitter = {
 	"cmake",
 	"css",
 	"html",
+	"php",
 	"javascript",
 	"json",
 	"json5",
@@ -267,6 +275,8 @@ config.mason = {
 		"isort",
 		"markdownlint",
 		"markdown-toc",
+		"phpcs",
+		"php-cs-fixer",
 	},
 }
 
@@ -298,8 +308,10 @@ config.formatter = function()
 		cmake = { "cmakelang" },
 		["markdown"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
 		["markdown.mdx"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
+		php = { "php_cs_fixer" },
 	}
 
+	---@diagnostic disable-next-line: undefined-doc-name
 	--- @type table<string, conform.FormatterConfigOverride|fun(bufnr: integer): nil|conform.FormatterConfigOverride>
 	formatter.config = {
 		shfmt = {

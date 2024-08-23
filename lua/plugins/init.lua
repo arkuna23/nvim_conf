@@ -47,7 +47,7 @@ local plugins = vim.tbl_extend(
 	require("plugins.dap"),
 	require("plugins.etc")
 )
-local categorized_plug, schema = manager.catogrize_plugins(plugins)
+local categorized_plug, schema = manager._catogrize_plugins(plugins)
 
 --write jsonschema
 vim.system({ "jq" }, {

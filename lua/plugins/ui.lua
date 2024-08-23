@@ -610,12 +610,12 @@ plugins["toggleterm"] = {
 	cmd = { "ToggleTerm" },
     -- stylua: ignore
     keys = {
-        { "<C-t>", function() require("toggleterm").toggle() end, desc = "Toggle Terminal" }
+        { "<C-t>", function() require("toggleterm").toggle() end, desc = "Toggle Terminal" },
+        { "<C-g>", function() require('lib.gitui').toggle() end, desc = "Toggle GiTui" }
     },
 	opts = {
 		direction = "float",
 	},
-	config = true,
 }
 
 return plugins
