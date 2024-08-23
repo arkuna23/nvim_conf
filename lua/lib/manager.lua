@@ -46,7 +46,11 @@ end
 
 M.plugin_enabled = function()
 	---@diagnostic disable-next-line: undefined-field
-	return vim.uv.fs_stat(flag_path)
+	local state = vim.uv.fs_stat(flag_path)
+	M.plugin_enabled = function()
+		return state
+	end
+	return M.plugin_enabled()
 end
 
 M.toggle_plugin_enabled = function()
@@ -96,11 +100,25 @@ M.switch_plugins = function(enabled_list, specs)
 	end
 end
 
----categorize plugins and make json-schema
----@param plugins_list PlugSpec[]
+local specs = nil
+
+M.plugin_specs_loaded = function()
+	return specs ~= nil
+end
+
+---get plugin spec by name
+---@param name string
+---@return PlugSpec|nil
+M.get_plug_spec = function(name)
+	return specs and specs[name] or nil
+end
+
+---categorize plugins, make json-schema and cache specs
+---@param plugins_list table<string, PlugSpec>
 ---@return table "categorized plugin table"
 ---@return table "json-schema table"
-M.catogrize_plugins = function(plugins_list)
+M._catogrize_plugins = function(plugins_list)
+	specs = plugins_list
 	local categorized_plug = {}
 	local schema = {
 		["$schema"] = "http://json-schema.org/draft-04/schema#",

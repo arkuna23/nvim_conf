@@ -1,5 +1,3 @@
-require("lib.util")
-
 ---@type table<string, PlugSpec>
 local plugins = {}
 

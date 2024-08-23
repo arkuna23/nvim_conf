@@ -1,8 +1,4 @@
 ---@diagnostic disable-next-line: unused-local
-local util = require("lib.util")
-local async_lib = require("lib.async")
-local notify = require("lib.notify")
-
 local server_version = "v0.1.0"
 local server_dir = vim.fn.stdpath("data") .. "/pdf-prev-server"
 local server_path = server_dir .. "/pdf-preview-server"
@@ -19,11 +15,12 @@ function PDFViewer:run(filename)
 	end
 
 	local server = vim.fn.jobstart({ server_path, filename, self.pdf_preview_port }, {
-		cwd = vim.fn.getcwd(),
 		on_exit = function(_, return_val)
 			if return_val ~= 0 then
 				vim.notify("pdf live preview exited with code " .. return_val)
 			end
+			self.server = nil
+			self._buffer = nil
 		end,
 	})
 	self.filename = filename
@@ -60,18 +57,21 @@ end
 
 ---stop pdf viewer server
 function PDFViewer:stop()
-	vim.system({ "curl", "-X", "POST", "http://127.0.0.1:" .. self.pdf_preview_port .. "/stop" }):wait()
-	self.server = nil
+	vim.system({ "curl", "-X", "POST", "http://127.0.0.1:" .. self.pdf_preview_port .. "/stop" })
+		:wait()
 end
-
-local buffers = {}
 
 local server_setup = function()
 	local async = require("plenary.async")
+	local notify = require("lib.notify")
+	local async_lib = require("lib.async")
 
 	-- download
 	local download = function(pack_name, succ_fn)
-		local noti = notify.ProgressNotification:create("Download Server", "Downloading pdf preview server...")
+		local noti = notify.ProgressNotification:create(
+			"Download Server",
+			"Downloading pdf preview server..."
+		)
 
 		if not vim.uv.fs_stat(server_dir .. "/" .. pack_name) then
 			local out = async_lib.system({
@@ -128,9 +128,8 @@ return {
 	PDFViewer = PDFViewer,
 	latex_preview = function()
 		local bufname = vim.api.nvim_buf_get_name(0)
-		if not buffers[bufname] then
+		if bufname ~= PDFViewer._buffer then
 			vim.cmd("VimtexCompile")
-			buffers[bufname] = true
 		end
 		PDFViewer:open(bufname:gsub("%.%w+$", ".pdf"), bufname)
 	end,

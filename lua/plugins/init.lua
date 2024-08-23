@@ -1,18 +1,27 @@
-local utils = require("lib.util")
 local manager = require("lib.manager")
+local util = require("lib.util")
 
 ---@class PlugSpec: LazyPluginSpec
 ---@field categories string|string[]|nil
 
 local function trigger_user_load()
 	vim.api.nvim_exec_autocmds("User", { pattern = "Load" })
-	utils.nvim_loaded = true
+	util.nvim_loaded = true
+end
+
+local function load_theme()
+	require(COLORSCHEME)
+	vim.cmd("colorscheme " .. COLORSCHEME)
+	if vim.g.neovide then
+		require("config.vide").setup()
+	end
 end
 
 -- User Load: triggered when editing a file
 vim.api.nvim_create_autocmd("User", {
 	pattern = "VeryLazy",
 	callback = function()
+		load_theme()
 		if vim.bo.filetype == "dashboard" then
 			vim.api.nvim_create_autocmd("BufRead", {
 				once = true,
@@ -38,7 +47,7 @@ local plugins = vim.tbl_extend(
 	require("plugins.dap"),
 	require("plugins.etc")
 )
-local categorized_plug, schema = manager.catogrize_plugins(plugins)
+local categorized_plug, schema = manager._catogrize_plugins(plugins)
 
 --write jsonschema
 vim.system({ "jq" }, {
@@ -59,4 +68,4 @@ end)
 local file_content =
 	vim.fn.json_decode(vim.fn.readfile(vim.fn.stdpath("config") .. "/conf/plugins_loaded.json"))
 manager.switch_plugins(manager.process_plug_jsonconf(file_content), categorized_plug)
-return utils.table_value2array(plugins)
+return util.table_value2array(plugins)

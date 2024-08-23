@@ -64,5 +64,6 @@ return {
 	Variable = "󰀫 ",
 	Warn = " ",
 	Copilot = " ",
+	Codeium = "󰘦 ",
 	Template = " ",
 }

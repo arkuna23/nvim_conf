@@ -1,10 +1,8 @@
-local symbols = require("lib.symbols")
-
 ---@type table<string, PlugSpec>
 local plugins = {}
 
-local header = string.format(
-	[[
+local get_header = function()
+	return string.format([[
 
 
  █████╗ ██████╗  ██████╗██╗  ██╗███╗   ██╗██╗   ██╗██╗███╗   ███╗
@@ -15,66 +13,64 @@ local header = string.format(
 ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝╚═╝     ╚═╝
                                                                  
 
-Hello, %s
-welcome to nvim on %s!
+Arkuna's personal nvim distro
 
-]],
-	os.get_username(),
-	os.get_os_release()
-)
+]])
+end
 
 plugins["dashboard"] = {
 	"nvimdev/dashboard-nvim",
 	categories = "ui",
 	lazy = false,
-	opts = {
-		theme = "doom",
-		config = {
-			-- https://patorjk.com/software/taag
-			header = vim.fn.split(header, "\n", true),
-			center = {
-				{
-					icon = "  ",
-					desc = "Lazy",
-					action = "Lazy",
+	opts = function()
+		return {
+			theme = "doom",
+			config = {
+				-- https://patorjk.com/software/taag
+				header = vim.fn.split(get_header(), "\n", true),
+				center = {
+					{
+						icon = "  ",
+						desc = "Lazy",
+						action = "Lazy",
+					},
+					{
+						icon = "  ",
+						desc = "Edit config",
+						action = "Neotree " .. require("lib.util").config_root,
+					},
+					{
+						icon = "󰍉  ",
+						desc = "Find files(Telescope)",
+						action = "Telescope find_files",
+					},
+					{
+						icon = "󰑓  ",
+						desc = "Restore Session",
+						action = "RestoreSession",
+					},
+					{
+						icon = "󰈆  ",
+						desc = "Exit Neovim",
+						action = "qa",
+					},
 				},
-				{
-					icon = "  ",
-					desc = "Edit config",
-					action = "Neotree " .. require("lib.util").config_root,
-				},
-				{
-					icon = "󰍉  ",
-					desc = "find files(Telescope)",
-					action = "Telescope find_files",
-				},
-				{
-					icon = "󰑓  ",
-					desc = "Restore Session",
-					action = "RestoreSession",
-				},
-				{
-					icon = "󰈆  ",
-					desc = "Exit Neovim",
-					action = "qa",
-				},
+				footer = function()
+					local stats = require("lib.util").get_startup_stats()
+					return {
+						string.format(
+							"⚡ loaded %d/%d plugins in %.2f ms on startup",
+							stats.loaded,
+							stats.total,
+							stats.timeMs
+						),
+					}
+				end,
 			},
-			footer = function()
-				local stats = require("lib.util").get_startup_stats()
-				return {
-					string.format(
-						"⚡ loaded %d/%d plugins in %.2f ms on startup",
-						stats.loaded,
-						stats.total,
-						stats.timeMs
-					),
-				}
-			end,
-		},
-	},
+		}
+	end,
 	config = function(_, opts)
 		require("dashboard").setup(opts)
-		vim.cmd("colorscheme " .. COLORSCHEME)
 
 		if vim.fn.argc(-1) == 1 then
 			---@diagnostic disable-next-line: param-type-mismatch
@@ -97,7 +93,6 @@ plugins["neo-tree"] = {
 		"nvim-tree/nvim-web-devicons",
 		"MunifTanjim/nui.nvim",
 	},
-	init = function() end,
 	opts = function(_, opts)
 		opts.close_if_last_window = true
 		opts.default_component_configs = {
@@ -126,8 +121,20 @@ plugins["neo-tree"] = {
 		require("neo-tree").setup(opts)
 	end,
 	keys = {
-		{ "<leader>ee", "<Cmd>Neotree focus<CR>", noremap = true, silent = true, desc = "focus NeoTree" },
-		{ "<leader>et", "<Cmd>Neotree toggle<CR>", noremap = true, silent = true, desc = "toggle NeoTree" },
+		{
+			"<leader>ee",
+			"<Cmd>Neotree focus<CR>",
+			noremap = true,
+			silent = true,
+			desc = "focus NeoTree",
+		},
+		{
+			"<leader>et",
+			"<Cmd>Neotree toggle<CR>",
+			noremap = true,
+			silent = true,
+			desc = "toggle NeoTree",
+		},
 	},
 }
 
@@ -152,6 +159,7 @@ plugins["bufferline"] = {
 	},
 	event = "User Load",
 	opts = function()
+		local symbols = require("lib.symbols")
 		local opts = {
 			options = {
 				close_command = function(n)
@@ -173,7 +181,8 @@ plugins["bufferline"] = {
 				diagnostics_indicator = function(_, _, diagnostics_dict, _)
 					local s = " "
 					for e, n in pairs(diagnostics_dict) do
-						local sym = e == "error" and symbols.Error or (e == "warning" and symbols.Warn or symbols.Info)
+						local sym = e == "error" and symbols.Error
+							or (e == "warning" and symbols.Warn or symbols.Info)
 						s = s .. n .. sym
 					end
 					return s
@@ -241,7 +250,11 @@ plugins["bufferline"] = {
 	end,
 	keys = {
 		{ "<leader>bp", "<Cmd>BufferLineTogglePin<CR>", desc = "Toggle Pin" },
-		{ "<leader>bP", "<Cmd>BufferLineGroupClose ungrouped<CR>", desc = "Delete Non-Pinned Buffers" },
+		{
+			"<leader>bP",
+			"<Cmd>BufferLineGroupClose ungrouped<CR>",
+			desc = "Delete Non-Pinned Buffers",
+		},
 		{ "<leader>bo", "<Cmd>BufferLineCloseOthers<CR>", desc = "Delete Other Buffers" },
 		{ "<leader>br", "<Cmd>BufferLineCloseRight<CR>", desc = "Delete Buffers to the Right" },
 		{ "<leader>bl", "<Cmd>BufferLineCloseLeft<CR>", desc = "Delete Buffers to the Left" },
@@ -257,6 +270,7 @@ plugins["lualine"] = {
 	categories = "ui",
 	event = "User Load",
 	opts = function()
+		local symbols = require("lib.symbols")
 		return {
 			options = {
 				theme = "auto",
@@ -338,6 +352,7 @@ plugins["noice"] = {
 	"folke/noice.nvim",
 	categories = "ui",
 	event = "VeryLazy",
+	version = "4.4.7",
 	enabled = true,
 	opts = {
 		lsp = {
@@ -367,16 +382,68 @@ plugins["noice"] = {
 			inc_rename = true,
 		},
 	},
-    -- stylua: ignore
-    keys = {
-        { "<S-Enter>",   function() require("noice").redirect(vim.fn.getcmdline()) end,                 mode = "c",                 desc = "Redirect Cmdline" },
-        { "<leader>nl", function() require("noice").cmd("last") end,                                   desc = "Noice Last Message" },
-        { "<leader>nh", function() require("noice").cmd("history") end,                                desc = "Noice History" },
-        { "<leader>na", function() require("noice").cmd("all") end,                                    desc = "Noice All" },
-        { "<leader>nd", function() require("noice").cmd("dismiss") end,                                desc = "Dismiss All" },
-        { "<c-f>",       function() if not require("noice.lsp").scroll(4) then return "<c-f>" end end,  silent = true,              expr = true,              desc = "Scroll Forward",  mode = { "i", "n", "s" } },
-        { "<c-b>",       function() if not require("noice.lsp").scroll(-4) then return "<c-b>" end end, silent = true,              expr = true,              desc = "Scroll Backward", mode = { "i", "n", "s" } },
-    },
+	keys = {
+		{
+			"<S-Enter>",
+			function()
+				require("noice").redirect(vim.fn.getcmdline())
+			end,
+			mode = "c",
+			desc = "Redirect Cmdline",
+		},
+		{
+			"<leader>nl",
+			function()
+				require("noice").cmd("last")
+			end,
+			desc = "Noice Last Message",
+		},
+		{
+			"<leader>nh",
+			function()
+				require("noice").cmd("history")
+			end,
+			desc = "Noice History",
+		},
+		{
+			"<leader>na",
+			function()
+				require("noice").cmd("all")
+			end,
+			desc = "Noice All",
+		},
+		{
+			"<leader>nd",
+			function()
+				require("noice").cmd("dismiss")
+			end,
+			desc = "Dismiss All",
+		},
+		{
+			"<c-f>",
+			function()
+				if not require("noice.lsp").scroll(4) then
+					return "<c-f>"
+				end
+			end,
+			silent = true,
+			expr = true,
+			desc = "Scroll Forward",
+			mode = { "i", "n", "s" },
+		},
+		{
+			"<c-b>",
+			function()
+				if not require("noice.lsp").scroll(-4) then
+					return "<c-b>"
+				end
+			end,
+			silent = true,
+			expr = true,
+			desc = "Scroll Backward",
+			mode = { "i", "n", "s" },
+		},
+	},
 }
 
 plugins["which-key"] = {
@@ -487,10 +554,34 @@ plugins["telescope"] = {
 		telescope.load_extension("env")
 	end,
 	keys = {
-		{ "<leader>tf", "<Cmd>Telescope find_files<CR>", desc = "find file", silent = true, noremap = true },
-		{ "<leader>t<C-f>", "<Cmd>Telescope live_grep<CR>", desc = "live grep", silent = true, noremap = true },
-		{ "<leader>te", "<Cmd>Telescope env<CR>", desc = "environment variables", silent = true, noremap = true },
-		{ "<leader>tb", "<Cmd> Telescope buffers<CR>", desc = "buffers", silent = true, noremap = true },
+		{
+			"<leader>tf",
+			"<Cmd>Telescope find_files<CR>",
+			desc = "find file",
+			silent = true,
+			noremap = true,
+		},
+		{
+			"<leader>t<C-f>",
+			"<Cmd>Telescope live_grep<CR>",
+			desc = "live grep",
+			silent = true,
+			noremap = true,
+		},
+		{
+			"<leader>te",
+			"<Cmd>Telescope env<CR>",
+			desc = "environment variables",
+			silent = true,
+			noremap = true,
+		},
+		{
+			"<leader>tb",
+			"<Cmd> Telescope buffers<CR>",
+			desc = "buffers",
+			silent = true,
+			noremap = true,
+		},
 	},
 }
 
@@ -519,12 +610,12 @@ plugins["toggleterm"] = {
 	cmd = { "ToggleTerm" },
     -- stylua: ignore
     keys = {
-        { "<C-t>", function() require("toggleterm").toggle() end, desc = "Toggle Terminal" }
+        { "<C-t>", function() require("toggleterm").toggle() end, desc = "Toggle Terminal" },
+        { "<C-g>", function() require('lib.gitui').toggle() end, desc = "Toggle GiTui" }
     },
 	opts = {
 		direction = "float",
 	},
-	config = true,
 }
 
 return plugins
