@@ -1,5 +1,5 @@
-local manager = require("lib.manager")
-local config = require("config.init")
+local manager = lazy_require("lib.manager")
+local config = lazy_require("config.init")
 
 COLORSCHEME = "tokyonight"
 
@@ -10,7 +10,7 @@ vim.api.nvim_create_user_command(
 )
 
 --disable shada load at startup
-vim.opt.shadafile = "NONE"
+vim.o.shadafile = "NONE"
 vim.api.nvim_create_autocmd("CmdlineEnter", {
 	once = true,
 	callback = function()
