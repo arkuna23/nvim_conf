@@ -450,8 +450,19 @@ plugins["noice"] = {
 plugins["which-key"] = {
 	"folke/which-key.nvim",
 	categories = "ui",
-	event = { "User Load" },
-	keys = { "<leader>" },
+	lazy = true,
+	init = function()
+		vim.keymap.set("n", "<leader>", function()
+			require("which-key")
+			vim.defer_fn(function()
+				require("which-key").show({
+					keys = "<leader>",
+					mode = "n",
+				})
+				vim.keymap.del("n", "<leader>")
+			end, 0)
+		end)
+	end,
 	opts = {
 		plugins = {
 			marks = true,

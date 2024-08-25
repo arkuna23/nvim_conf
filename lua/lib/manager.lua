@@ -41,7 +41,6 @@ M.load_lazy = function()
 			backdrop = 60,
 		},
 	})
-	require("config.init").setup()
 end
 
 M.plugin_enabled = function()

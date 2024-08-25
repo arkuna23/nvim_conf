@@ -1,5 +1,4 @@
 local manager = lazy_require("lib.manager")
-local config = lazy_require("config.init")
 
 COLORSCHEME = "tokyonight"
 
@@ -20,8 +19,11 @@ vim.api.nvim_create_autocmd("CmdlineEnter", {
 	end,
 })
 
+require("config.init")
 if manager.plugin_enabled() then
 	manager.load_lazy()
 else
-	config.setup()
+	if vim.g.neovide then
+		require("config.vide")
+	end
 end
