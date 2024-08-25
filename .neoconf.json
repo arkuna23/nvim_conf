@@ -1,0 +1,9 @@
+{
+    "lspconfig": {
+        "lua_ls": {
+            "Lua.runtime.special": {
+                "lazy_require": "require"
+            }
+        }
+    }
+}

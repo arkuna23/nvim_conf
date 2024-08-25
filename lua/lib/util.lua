@@ -28,9 +28,9 @@ M.read_file_lines = function(path)
 	return lines
 end
 
-M.config_root = vim.fn.stdpath("config")
-
-M.nvim_loaded = false
+M.config_root = function()
+	return vim.fn.stdpath("config")
+end
 
 M.delegate_call = function(mod_name, fn_name, ...)
 	local args = { ... }
@@ -214,6 +214,13 @@ table.deep_copy = function(orig)
 		copy = orig
 	end
 	return copy
+end
+
+---get layout, depend on window size
+---@return 'horizontal' | 'vertical'
+M.get_proper_layout = function()
+	return (vim.api.nvim_win_get_width(0) > vim.api.nvim_win_get_height(0) * 2.5) and "horizontal"
+		or "vertical"
 end
 
 return M

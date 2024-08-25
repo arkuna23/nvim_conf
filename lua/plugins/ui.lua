@@ -1,5 +1,6 @@
 ---@type table<string, PlugSpec>
 local plugins = {}
+local util = lazy_require("lib.util")
 
 local get_header = function()
 	return string.format([[
@@ -37,7 +38,7 @@ plugins["dashboard"] = {
 					{
 						icon = "  ",
 						desc = "Edit config",
-						action = "Neotree " .. require("lib.util").config_root,
+						action = "Neotree " .. util.config_root(),
 					},
 					{
 						icon = "󰍉  ",
@@ -56,7 +57,7 @@ plugins["dashboard"] = {
 					},
 				},
 				footer = function()
-					local stats = require("lib.util").get_startup_stats()
+					local stats = util.get_startup_stats()
 					return {
 						string.format(
 							"⚡ loaded %d/%d plugins in %.2f ms on startup",
@@ -518,40 +519,52 @@ plugins["telescope"] = {
 				.. "cmake --install build --prefix build",
 		},
 	},
-	opts = {
-		defaults = {
-			initial_mode = "insert",
-			mappings = {
-				i = {
-					["<C-j>"] = "move_selection_next",
-					["<C-k>"] = "move_selection_previous",
-					["<C-n>"] = "cycle_history_next",
-					["<C-p>"] = "cycle_history_prev",
-					["<C-c>"] = "close",
-					["<C-u>"] = "preview_scrolling_up",
-					["<C-d>"] = "preview_scrolling_down",
+	opts = function()
+		return {
+			defaults = {
+				initial_mode = "insert",
+				mappings = {
+					i = {
+						["<C-j>"] = "move_selection_next",
+						["<C-k>"] = "move_selection_previous",
+						["<C-n>"] = "cycle_history_next",
+						["<C-p>"] = "cycle_history_prev",
+						["<C-c>"] = "close",
+						["<C-u>"] = "preview_scrolling_up",
+						["<C-d>"] = "preview_scrolling_down",
+					},
 				},
 			},
-		},
-		pickers = {
-			find_files = {
-				winblend = 20,
+			pickers = {
+				find_files = {
+					winblend = 20,
+				},
 			},
-		},
-		extensions = {
-			fzf = {
-				fuzzy = true,
-				override_generic_sorter = true,
-				override_file_sorter = true,
-				case_mode = "smart_case",
+			extensions = {
+				fzf = {
+					fuzzy = true,
+					override_generic_sorter = true,
+					override_file_sorter = true,
+					case_mode = "smart_case",
+				},
 			},
-		},
-	},
+		}
+	end,
 	config = function(_, opts)
 		local telescope = require("telescope")
 		telescope.setup(opts)
 		telescope.load_extension("fzf")
 		telescope.load_extension("env")
+
+		--modify layout
+		local picker = require("telescope.pickers")._Picker
+		local new_fn = picker.new
+		---@diagnostic disable-next-line: duplicate-set-field
+		picker.new = function(self, new_opts)
+			new_opts = new_opts or {}
+			new_opts.layout_strategy = new_opts.layout_strategy or util.get_proper_layout()
+			return new_fn(self, new_opts)
+		end
 	end,
 	keys = {
 		{
@@ -611,7 +624,7 @@ plugins["toggleterm"] = {
     -- stylua: ignore
     keys = {
         { "<C-t>", function() require("toggleterm").toggle() end, desc = "Toggle Terminal" },
-        { "<C-g>", function() require('lib.gitui').toggle() end, desc = "Toggle GiTui" }
+        { "<C-g>", lazy_require('lib.gitui').toggle, desc = "Toggle GiTui" }
     },
 	opts = {
 		direction = "float",

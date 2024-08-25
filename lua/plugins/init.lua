@@ -6,7 +6,6 @@ local util = require("lib.util")
 
 local function trigger_user_load()
 	vim.api.nvim_exec_autocmds("User", { pattern = "Load" })
-	util.nvim_loaded = true
 end
 
 local function load_theme()
@@ -51,7 +50,7 @@ local categorized_plug, schema = manager._catogrize_plugins(plugins)
 
 --write jsonschema
 vim.system({ "jq" }, {
-	stdin = vim.fn.json_encode(schema),
+	stdin = vim.json.encode(schema),
 }, function(res)
 	if res.code == 0 then
 		local file = io.open(vim.fn.stdpath("data") .. "/plug_schema.json", "w")
@@ -65,7 +64,8 @@ vim.system({ "jq" }, {
 end)
 
 --read plugin jsonconf
-local file_content =
-	vim.fn.json_decode(vim.fn.readfile(vim.fn.stdpath("config") .. "/conf/plugins_loaded.json"))
+local file_content = vim.json.decode(
+	table.concat(vim.fn.readfile(vim.fn.stdpath("config") .. "/conf/plugins_loaded.json"))
+)
 manager.switch_plugins(manager.process_plug_jsonconf(file_content), categorized_plug)
 return util.table_value2array(plugins)
