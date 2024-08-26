@@ -324,7 +324,7 @@ config.formatter = function()
 					{ upward = true, path = ctx.dirname, type = "file" }
 				)[1]
 				if not file then
-					file = util.config_root .. "/conf/.clang-format"
+					file = util.config_root() .. "/conf/.clang-format"
 				end
 
 				return {
@@ -355,7 +355,7 @@ config.formatter = function()
 
 				return {
 					"--config",
-					util.config_root .. "/conf/.prettierrc.json",
+					util.config_root() .. "/conf/.prettierrc.json",
 				}
 			end,
 		},
