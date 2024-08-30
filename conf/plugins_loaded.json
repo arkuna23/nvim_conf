@@ -9,6 +9,6 @@
     "lang": true,
     "editor": true,
     "ai": {
-        "codeium": true
+        "copilot": true
     }
 }

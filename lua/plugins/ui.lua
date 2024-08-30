@@ -230,13 +230,13 @@ plugins["bufferline"] = {
 		vim.api.nvim_create_autocmd("BufEnter", {
 			once = true,
 			callback = function()
-				vim.schedule(function()
+				vim.defer_fn(function()
 					---@diagnostic disable-next-line: undefined-global
 					local res, err = pcall(nvim_bufferline)
 					if not res then
 						vim.notify(err)
 					end
-				end)
+				end, 0)
 			end,
 		})
 
