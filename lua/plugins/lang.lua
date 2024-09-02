@@ -25,12 +25,23 @@ plugins["nvim-ts-autotag"] = {
 plugins["rustaceanvim"] = {
 	"mrcjkb/rustaceanvim",
 	categories = { "lang", "rust" },
-	version = "^4", -- Recommended
+	version = "^5", -- Recommended
 	ft = { "rust" },
 	build = "rustup component add rust-analyzer",
 	opts = function()
 		return {
 			server = {
+				settings = function(project_root)
+					local settings =
+						require("rustaceanvim.config.server").load_rust_analyzer_settings(
+							project_root,
+							{
+								settings_file_pattern = "rust-analyzer.json",
+							}
+						)
+
+					return settings
+				end,
 				on_attach = function(_, bufnr)
 					require("lib.lsp").key_attach(bufnr)
 				end,
@@ -38,7 +49,6 @@ plugins["rustaceanvim"] = {
 					-- rust-analyzer language server configuration
 					["rust-analyzer"] = {
 						cargo = {
-							allFeatures = true,
 							loadOutDirsFromCheck = true,
 							runBuildScripts = true,
 						},
@@ -62,7 +72,7 @@ plugins["rustaceanvim"] = {
 		}
 	end,
 	config = function(_, opts)
-		vim.g.rustaceanvim = vim.tbl_deep_extend("keep", vim.g.rustaceanvim or {}, opts or {})
+		vim.g.rustaceanvim = vim.tbl_deep_extend("force", vim.g.rustaceanvim or {}, opts or {})
 	end,
 }
 

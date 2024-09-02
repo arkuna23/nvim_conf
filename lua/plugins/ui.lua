@@ -230,13 +230,13 @@ plugins["bufferline"] = {
 		vim.api.nvim_create_autocmd("BufEnter", {
 			once = true,
 			callback = function()
-				vim.schedule(function()
+				vim.defer_fn(function()
 					---@diagnostic disable-next-line: undefined-global
 					local res, err = pcall(nvim_bufferline)
 					if not res then
 						vim.notify(err)
 					end
-				end)
+				end, 0)
 			end,
 		})
 
@@ -285,17 +285,6 @@ plugins["lualine"] = {
 				lualine_b = { "branch", "diff" },
 				lualine_c = {
 					"filename",
-					{
-						"lsp_progress",
-						spinner_symbols = {
-							symbols.Dice1,
-							symbols.Dice2,
-							symbols.Dice3,
-							symbols.Dice4,
-							symbols.Dice5,
-							symbols.Dice6,
-						},
-					},
 				},
 				lualine_x = {
 					{
@@ -305,6 +294,7 @@ plugins["lualine"] = {
 						cond = require("noice").api.status.mode.has,
 						color = { fg = "#ff9e64" },
 					},
+					"copilot",
 					{
 						"fileformat",
 						symbols = { unix = symbols.Unix, dos = symbols.Dos, mac = symbols.Mac },

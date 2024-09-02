@@ -20,7 +20,18 @@ vim.api.nvim_create_autocmd("CmdlineEnter", {
 })
 
 require("config.init")
-if manager.plugin_enabled() then
+
+--disable plugins if file size bigger than 4mb
+local loadplugin = true
+local filepath = vim.api.nvim_buf_get_name(0)
+if vim.fn.filereadable(filepath) == 1 then
+	local filesize = vim.fn.getfsize(filepath) / (1024 * 1024)
+	if filesize > 2 then
+		loadplugin = false
+	end
+end
+
+if manager.plugin_enabled() and loadplugin then
 	manager.load_lazy()
 else
 	if vim.g.neovide then

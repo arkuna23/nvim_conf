@@ -219,7 +219,14 @@ end
 ---get layout, depend on window size
 ---@return 'horizontal' | 'vertical'
 M.get_proper_layout = function()
-	return (vim.api.nvim_win_get_width(0) > vim.api.nvim_win_get_height(0) * 2.5) and "horizontal"
+	return (
+		vim.api.nvim_get_option_value("columns", {
+			scope = "global",
+		}) > vim.api.nvim_get_option_value("lines", {
+			scope = "global",
+		}) * 2.5
+	)
+			and "horizontal"
 		or "vertical"
 end
 
