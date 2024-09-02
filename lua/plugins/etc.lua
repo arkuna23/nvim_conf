@@ -27,6 +27,16 @@ plugins["copilot-cmp"] = {
 	end,
 }
 
+plugins["copilot-lualine"] = {
+	"AndreM222/copilot-lualine",
+	categories = { "ai", "copilot" },
+	dependencies = {
+		"copilot.lua",
+		"nvim-lualine/lualine.nvim",
+	},
+	event = { "InsertEnter", "CmdlineEnter" },
+}
+
 plugins["copilot"] = {
 	"arkuna23/copilot.lua",
 	categories = { "ai", "copilot" },
