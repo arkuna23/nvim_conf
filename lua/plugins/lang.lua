@@ -190,7 +190,7 @@ plugins["cmake-tools"] = {
 		"akinsho/toggleterm.nvim",
 	},
 	lazy = true,
-	ft = { "cmake", "c" },
+	ft = { "cmake", "c", "cpp", "cxx" },
 	opts = {
 		cmake_runner = {
 			name = "toggleterm",
