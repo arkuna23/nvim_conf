@@ -1,6 +1,5 @@
 ---@type table<string, PlugSpec>
 local plugins = {}
-local lsp_lib = require("lib.lsp")
 
 plugins["wakatime"] = {
 	"wakatime/vim-wakatime",
@@ -21,9 +20,6 @@ plugins["copilot-cmp"] = {
 	config = function(_, opts)
 		local copilot_cmp = require("copilot_cmp")
 		copilot_cmp.setup(opts)
-		lsp_lib.on_attach_autocmd(function(_)
-			copilot_cmp._on_insert_enter({})
-		end, "copilot")
 	end,
 }
 

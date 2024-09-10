@@ -54,15 +54,21 @@ plugins["nvim-cmp"] = {
 					require("luasnip").lsp_expand(args.body)
 				end,
 			},
+			sorting = {
+				comparators = {
+					require("clangd_extensions.cmp_scores"),
+				},
+				priority_weight = 1,
+			},
 			sources = cmp.config.sources({
 				{ name = "lazydev" },
 			}, {
 				{ name = "nvim_lsp" },
 				{ name = "luasnip" },
 				{ name = "crates" },
-				{ name = "copilot" },
 				{ name = "codeium" },
 			}, {
+				{ name = "copilot" },
 				{ name = "buffer" },
 				{ name = "path" },
 			}),

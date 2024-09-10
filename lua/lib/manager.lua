@@ -112,12 +112,23 @@ M.get_plug_spec = function(name)
 	return specs and specs[name] or nil
 end
 
+---set plugin specs
+---@param plug_specs table
+M.set_plugin_specs = function(plug_specs)
+	specs = plug_specs
+end
+
+local categorized
+
+M.set_categorized_plugins = function(plug_specs)
+	categorized = plug_specs
+end
+
 ---categorize plugins, make json-schema and cache specs
----@param plugins_list table<string, PlugSpec>
+---@param plugin_specs table<string, PlugSpec>
 ---@return table "categorized plugin table"
 ---@return table "json-schema table"
-M._catogrize_plugins = function(plugins_list)
-	specs = plugins_list
+M.catogrize_plugins = function(plugin_specs)
 	local categorized_plug = {}
 	local schema = {
 		["$schema"] = "http://json-schema.org/draft-04/schema#",
@@ -141,7 +152,7 @@ M._catogrize_plugins = function(plugins_list)
 		},
 	}
 
-	for n, v in pairs(plugins_list) do
+	for n, v in pairs(plugin_specs) do
 		if v.categories then
 			v.cond = false
 			if type(v.categories) == "string" then

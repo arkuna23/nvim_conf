@@ -141,7 +141,6 @@ local lsp_default_config = function()
 		capabilities = require("cmp_nvim_lsp").default_capabilities(),
 		flags = lsp_default_flags,
 		-- default attach actions
-		on_attach = lsp_default_on_attach,
 	}
 end
 
@@ -172,7 +171,7 @@ end
 
 --- @class ConfigOpts
 --- @field inherit_on_attach boolean|optvalue whether inherit on_attach function, default is true
---- @field extra fun(final_conf: table)|nil extra actions to process final config
+--- @field setup fun(conf: table): table|nil extra actions to process final config
 --- @field inherit_keybindings boolean|optvalue whether inherit default keymaps, default is true
 --- @field keybindings table[]|optvalue lsp keybindings
 --- @field whichkey wk.Spec[]|(fun(): wk.Spec[])|nil which-key bindings
@@ -190,7 +189,7 @@ lsp.create_config = function(append_tbl, opts)
 			inherit_on_attach = true,
 			inherit_keybindings = true,
 		})
-		util.process_dyn_table(opts, { "extra" })
+		util.process_dyn_table(opts, { "setup" })
 
 		local new_attach = append_tbl.on_attach
 		append_tbl.on_attach = function(client, bufnr)
@@ -220,8 +219,8 @@ lsp.create_config = function(append_tbl, opts)
 			end
 		end
 		local new_conf = vim.tbl_extend("force", lsp_default_config(), append_tbl)
-		if opts.extra then
-			opts.extra(new_conf)
+		if opts.setup then
+			new_conf = opts.setup(new_conf) or new_conf
 		end
 
 		return new_conf
