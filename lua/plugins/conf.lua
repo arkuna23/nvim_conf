@@ -30,10 +30,11 @@ config.lsp = function()
 				},
 			},
 		}, {
-			extra = function()
+			setup = function(opts)
 				local runtime_path = vim.split(package.path, ";")
 				table.insert(runtime_path, "lua/?.lua")
 				table.insert(runtime_path, "lua/?/init.lua")
+				return opts
 			end,
 		}),
 		["omnisharp"] = lsp_lib.create_config({
@@ -114,9 +115,6 @@ config.lsp = function()
 					"Switch Source/Header (C/C++)",
 				},
 			},
-			whichkey = {
-				{ "<leader>c", group = "clangd" },
-			},
 		}),
 		["pyright"] = lsp_lib.create_config(),
 		["jsonls"] = function()
@@ -186,7 +184,7 @@ config.lsp = function()
 		}, {
 			inherit_keybindings = false,
 		}),
-		["tsserver"] = lsp_lib.create_config(function()
+		["ts_ls"] = lsp_lib.create_config(function()
 			local volar_path =
 				util.get_pkg_path("vue-language-server", "node_modules/@vue/language-server")
 			return {

@@ -151,36 +151,6 @@ plugins["clangd_extensions"] = {
 	"p00f/clangd_extensions.nvim",
 	categories = { "lang", "c/cpp" },
 	lazy = true,
-	ft = "c",
-	config = function() end,
-	opts = function()
-		local symbols = require("lib.symbols")
-		return {
-			inlay_hints = {
-				inline = false,
-			},
-			ast = {
-				--These require codicons (https://github.com/microsoft/vscode-codicons)
-				role_icons = {
-					type = symbols.Type,
-					declaration = symbols.Declaration,
-					expression = symbols.Circle,
-					specifier = symbols.ListTree,
-					statement = symbols.SymbolEvent,
-					["template argument"] = symbols.Template,
-				},
-				kind_icons = {
-					Compound = symbols.Namespace,
-					Recovery = symbols.Error,
-					TranslationUnit = symbols.CodeFile,
-					PackExpansion = symbols.Ellipsis,
-					TemplateTypeParm = symbols.Template,
-					TemplateTemplateParm = symbols.Template,
-					TemplateParamObject = symbols.Template,
-				},
-			},
-		}
-	end,
 }
 
 plugins["cmake-tools"] = {
@@ -190,7 +160,7 @@ plugins["cmake-tools"] = {
 		"akinsho/toggleterm.nvim",
 	},
 	lazy = true,
-	ft = { "cmake", "c" },
+	ft = { "cmake", "c", "cpp" },
 	opts = {
 		cmake_runner = {
 			name = "toggleterm",
