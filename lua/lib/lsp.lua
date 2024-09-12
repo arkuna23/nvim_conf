@@ -171,7 +171,7 @@ end
 
 --- @class ConfigOpts
 --- @field inherit_on_attach boolean|optvalue whether inherit on_attach function, default is true
---- @field setup fun(conf: table): table|nil extra actions to process final config
+--- @field setup (fun(conf: table): table|nil)|nil extra actions to process final config
 --- @field inherit_keybindings boolean|optvalue whether inherit default keymaps, default is true
 --- @field keybindings table[]|optvalue lsp keybindings
 --- @field whichkey wk.Spec[]|(fun(): wk.Spec[])|nil which-key bindings

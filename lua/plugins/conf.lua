@@ -184,7 +184,7 @@ config.lsp = function()
 		}, {
 			inherit_keybindings = false,
 		}),
-		["tsserver"] = lsp_lib.create_config(function()
+		["ts_ls"] = lsp_lib.create_config(function()
 			local volar_path =
 				util.get_pkg_path("vue-language-server", "node_modules/@vue/language-server")
 			return {
