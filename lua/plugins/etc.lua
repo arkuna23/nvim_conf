@@ -40,8 +40,7 @@ plugins["copilot"] = {
 	branch = "pr",
 	build = ":Copilot auth",
 	opts = function()
-		local _, local_v = pcall(require, "local_v")
-		local_v = local_v or {}
+		local local_v = require("local_v")
 		return {
 			suggestion = { enabled = false },
 			panel = { enabled = false },
