@@ -116,7 +116,11 @@ config.lsp = function()
 				},
 			},
 		}),
-		["pyright"] = lsp_lib.create_config(),
+		["pyright"] = lsp_lib.create_config({
+			root_dir = function()
+				return (vim.loop or vim.uv).cwd()
+			end,
+		}),
 		["jsonls"] = function()
 			return {
 				-- lazy-load schemastore when needed
@@ -209,10 +213,16 @@ config.lsp = function()
 		["taplo"] = lsp_lib.create_config(),
 	}
 
+	local php_lsp_opts = {
+		root_dir = function()
+			return (vim.loop or vim.uv).cwd()
+		end,
+	}
+
 	if php_lsp == "intelephense" then
-		conf.intelephense = lsp_lib.create_config()
+		conf.intelephense = lsp_lib.create_config(php_lsp_opts)
 	elseif php_lsp == "phpactor" then
-		conf.phpactor = lsp_lib.create_config()
+		conf.phpactor = lsp_lib.create_config(php_lsp_opts)
 	end
 
 	config.lsp = function()
@@ -242,6 +252,7 @@ config.treesitter = {
 	"tsx",
 	"vim",
 	"ninja",
+	"rst",
 	"markdown",
 	"bibtex",
 	"markdown_inline",
