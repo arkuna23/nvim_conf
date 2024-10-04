@@ -31,17 +31,6 @@ plugins["rustaceanvim"] = {
 	opts = function()
 		return {
 			server = {
-				settings = function(project_root)
-					local settings =
-						require("rustaceanvim.config.server").load_rust_analyzer_settings(
-							project_root,
-							{
-								settings_file_pattern = "rust-analyzer.json",
-							}
-						)
-
-					return settings
-				end,
 				on_attach = function(_, bufnr)
 					require("lib.lsp").key_attach(bufnr)
 				end,
