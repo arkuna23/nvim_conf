@@ -343,7 +343,6 @@ plugins["noice"] = {
 	"folke/noice.nvim",
 	categories = "ui",
 	event = "VeryLazy",
-	version = "4.4.7",
 	enabled = true,
 	opts = {
 		lsp = {
@@ -441,18 +440,17 @@ plugins["which-key"] = {
 	"folke/which-key.nvim",
 	categories = "ui",
 	lazy = true,
-	init = function()
-		vim.keymap.set("n", "<leader>", function()
-			require("which-key")
-			vim.defer_fn(function()
-				require("which-key").show({
-					keys = "<leader>",
-					mode = "n",
-				})
-				vim.keymap.del("n", "<leader>")
-			end, 0)
-		end)
-	end,
+	cmd = { "WhichKey" },
+	keys = {
+		{
+			"<leader>",
+			mode = "n",
+			function()
+				vim.defer_fn(require("which-key").show, vim.opt.timeoutlen:get())
+			end,
+			desc = "WhichKey",
+		},
+	},
 	opts = {
 		plugins = {
 			marks = true,

@@ -174,7 +174,7 @@ end
 --- @field setup (fun(conf: table): table|nil)|nil extra actions to process final config
 --- @field inherit_keybindings boolean|optvalue whether inherit default keymaps, default is true
 --- @field keybindings table[]|optvalue lsp keybindings
---- @field whichkey wk.Spec[]|(fun(): wk.Spec[])|nil which-key bindings
+--- @field whichkey wk.Spec|(fun(): wk.Spec)|nil which-key bindings
 
 --- create new config based on default config
 --- @param append_tbl table|optvalue

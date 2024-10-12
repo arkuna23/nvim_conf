@@ -50,7 +50,6 @@ plugins["mason"] = {
 	event = "User Load",
 	categories = "lsp",
 	cmd = "Mason",
-	keys = { { "<leader>m", "<cmd>Mason<cr>", desc = "Mason" } },
 	build = ":MasonUpdate",
 	opts = function()
 		local symbols = require("lib.symbols")

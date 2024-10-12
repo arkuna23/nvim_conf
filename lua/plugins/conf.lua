@@ -164,7 +164,10 @@ config.lsp = function()
 		}),
 		["bashls"] = lsp_lib.create_config(),
 		["marksman"] = lsp_lib.create_config({}, {
-			whichkey = { { "<leader>m", group = "markdown" } },
+			whichkey = {
+				{ "<leader>m", group = "markdown" },
+				{ "<leader>mm", group = "markmap" },
+			},
 		}),
 		["neocmake"] = lsp_lib.create_config(),
 		["html"] = lsp_lib.create_config(),

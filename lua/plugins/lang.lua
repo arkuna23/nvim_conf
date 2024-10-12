@@ -135,6 +135,47 @@ plugins["headlines"] = {
 	end,
 }
 
+plugins["markmap"] = {
+	"Zeioth/markmap.nvim",
+	categories = { "lang", "markdown", "markmap" },
+	build = "yarn global add markmap-cli",
+	cmd = { "MarkmapOpen", "MarkmapSave", "MarkmapWatch", "MarkmapWatchStop" },
+	keys = {
+		{
+			"<leader>mmo",
+			ft = "markdown",
+			"<cmd>MarkmapOpen<cr>",
+			desc = "Markmap Open Preview",
+		},
+		{
+			"<leader>mms",
+			ft = "markdown",
+			"<cmd>MarkmapSave<cr>",
+			desc = "Markmap Save",
+		},
+		{
+			"<leader>mmw",
+			ft = "markdown",
+			"<cmd>MarkmapWatch<cr>",
+			desc = "Markmap Watch",
+		},
+		{
+			"<leader>mmt",
+			ft = "markdown",
+			"<cmd>MarkmapWatchStop<cr>",
+			desc = "Markmap Stop Watch",
+		},
+	},
+	opts = {
+		html_output = "/tmp/markmap.html",
+		hide_toolbar = false,
+		grace_period = 3600000,
+	},
+	config = function(_, opts)
+		require("markmap").setup(opts)
+	end,
+}
+
 -- c/cpp
 plugins["clangd_extensions"] = {
 	"p00f/clangd_extensions.nvim",
