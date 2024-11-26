@@ -43,17 +43,17 @@ M.load_lazy = function()
 	})
 end
 
-M.plugin_enabled = function()
+M.plugins_enabled = function()
 	---@diagnostic disable-next-line: undefined-field
 	local state = vim.uv.fs_stat(flag_path)
-	M.plugin_enabled = function()
+	M.plugins_enabled = function()
 		return state
 	end
-	return M.plugin_enabled()
+	return M.plugins_enabled()
 end
 
-M.toggle_plugin_enabled = function()
-	if M.plugin_enabled() then
+M.toggle_plugins_enabled = function()
+	if M.plugins_enabled() then
 		local succ, err = os.remove(flag_path)
 		if succ then
 			vim.notify("Plugins disabled, will be effective at the next start")
@@ -79,13 +79,13 @@ end
 ---@param enabled_list EnabledPlugins
 ---@param specs _CategoriedPlugSpecs
 ---@diagnostic disable-next-line: unused-function
-M.switch_plugins = function(enabled_list, specs)
+M.switch_plugin = function(enabled_list, specs)
 	if enabled_list == true then
 		for _, spec_tbl in pairs(specs) do
 			if spec_tbl.categories then
 				spec_tbl.cond = true
 			else
-				M.switch_plugins(true, spec_tbl)
+				M.switch_plugin(true, spec_tbl)
 			end
 		end
 	elseif type(enabled_list) == "table" then
@@ -94,7 +94,7 @@ M.switch_plugins = function(enabled_list, specs)
 		end
 		for cate, enabled_tbl in pairs(enabled_list) do
 			---@diagnostic disable-next-line: param-type-mismatch
-			M.switch_plugins(enabled_tbl, specs[cate])
+			M.switch_plugin(enabled_tbl, specs[cate])
 		end
 	end
 end

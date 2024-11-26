@@ -69,5 +69,5 @@ end)
 local file_content = vim.json.decode(
 	table.concat(vim.fn.readfile(vim.fn.stdpath("config") .. "/conf/plugins_loaded.json"))
 )
-manager.switch_plugins(manager.process_plug_jsonconf(file_content), categorized_plug)
+manager.switch_plugin(manager.process_plug_jsonconf(file_content), categorized_plug)
 return util.table_value2array(plugins)

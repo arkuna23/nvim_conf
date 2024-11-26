@@ -1,6 +1,8 @@
 ---@type table<string, PlugSpec>
 local plugins = {}
 
+local manager = lazy_require("lib.manager")
+
 plugins["nvim-cmp"] = {
 	"hrsh7th/nvim-cmp",
 	categories = "editor",
@@ -47,6 +49,14 @@ plugins["nvim-cmp"] = {
 		})
 
 		local cmp = require("cmp")
+		local sources2 = {
+			{ name = "copilot" },
+			{ name = "buffer" },
+			{ name = "path" },
+		}
+		if manager.get_plug_spec("copilot-cmp").enabled then
+			sources2[#sources2 + 1] = { name = "copilot" }
+		end
 		---@diagnostic disable-next-line: redundant-parameter
 		cmp.setup({
 			snippet = {
@@ -60,6 +70,7 @@ plugins["nvim-cmp"] = {
 				},
 				priority_weight = 1,
 			},
+
 			sources = cmp.config.sources({
 				{ name = "lazydev" },
 			}, {
@@ -67,11 +78,7 @@ plugins["nvim-cmp"] = {
 				{ name = "luasnip" },
 				{ name = "crates" },
 				{ name = "codeium" },
-			}, {
-				{ name = "copilot" },
-				{ name = "buffer" },
-				{ name = "path" },
-			}),
+			}, sources2),
 			mapping = cmp.mapping.preset.insert({
 				["<C-j>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }),
 				["<C-k>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }),
@@ -339,7 +346,12 @@ plugins["img-clip"] = {
 	opts = {
 		default = {
 			dir_path = "images",
+			embed_image_as_base64 = false,
+			prompt_for_file_name = false,
 			relative_to_current_file = true,
+			drag_and_drop = {
+				insert_mode = true,
+			},
 		},
 	},
 	keys = {

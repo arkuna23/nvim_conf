@@ -2,6 +2,8 @@
 local plugins = {}
 local util = lazy_require("lib.util")
 
+local manager = lazy_require("lib.manager")
+
 local get_header = function()
 	return string.format([[
 
@@ -272,6 +274,24 @@ plugins["lualine"] = {
 	event = "User Load",
 	opts = function()
 		local symbols = require("lib.symbols")
+		---@type table<any, any>
+		local lualine_x = {
+			{
+				---@diagnostic disable-next-line: undefined-field
+				require("noice").api.status.mode.get,
+				---@diagnostic disable-next-line: undefined-field
+				cond = require("noice").api.status.mode.has,
+				color = { fg = "#ff9e64" },
+			},
+			"copilot",
+			{
+				"fileformat",
+				symbols = { unix = symbols.Unix, dos = symbols.Dos, mac = symbols.Mac },
+			},
+			"encoding",
+			"filetype",
+		}
+		lualine_x[#lualine_x + 1] = "copilot"
 		return {
 			options = {
 				theme = "auto",
@@ -286,22 +306,7 @@ plugins["lualine"] = {
 				lualine_c = {
 					"filename",
 				},
-				lualine_x = {
-					{
-						---@diagnostic disable-next-line: undefined-field
-						require("noice").api.status.mode.get,
-						---@diagnostic disable-next-line: undefined-field
-						cond = require("noice").api.status.mode.has,
-						color = { fg = "#ff9e64" },
-					},
-					"copilot",
-					{
-						"fileformat",
-						symbols = { unix = symbols.Unix, dos = symbols.Dos, mac = symbols.Mac },
-					},
-					"encoding",
-					"filetype",
-				},
+				lualine_x = lualine_x,
 			},
 		}
 	end,

@@ -4,7 +4,7 @@ COLORSCHEME = "tokyonight"
 
 vim.api.nvim_create_user_command(
 	"TogglePluginsEnabled",
-	manager.toggle_plugin_enabled,
+	manager.toggle_plugins_enabled,
 	{ desc = "toggle lazy.nvim and plugins state" }
 )
 
@@ -31,7 +31,7 @@ if vim.fn.filereadable(filepath) == 1 then
 	end
 end
 
-if manager.plugin_enabled() and loadplugin then
+if manager.plugins_enabled() and loadplugin then
 	manager.load_lazy()
 else
 	if vim.g.neovide then

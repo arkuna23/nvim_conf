@@ -9,6 +9,9 @@
     "lang": true,
     "editor": true,
     "ai": {
-        "copilot": true
+        "copilot": {
+            "enabled": ["copilot"]
+        },
+        "enabled": ["avante"]
     }
 }
