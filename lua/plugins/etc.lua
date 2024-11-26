@@ -73,32 +73,29 @@ plugins["codeium"] = {
 }
 
 plugins["avante"] = {
-	"yetone/avante.nvim",
+	"https://github.com/yetone/avante.nvim",
 	categories = "ai",
 	event = "User Load",
-	version = false, -- set this if you want to always pull the latest change
 	opts = function()
 		local _, local_v = pcall(require, "local_v")
 		local_v = local_v or {}
-		local provider = local_v.avante_provider or "copilot"
+		local provider = local_v.avante or {}
 
 		local config = {
-			provider = provider,
-			auto_suggestions_provider = provider,
+			provider = provider.chat_provider or "copilot",
+			auto_suggestions_provider = provider.suggestions_provider or "copilot",
 			behaviour = {
 				auto_suggestions = true,
 			},
-			vendors = {},
+			vendors = {
+				deepseek = {
+					__inherited_from = "openai",
+					api_key_name = "DEEPSEEK_API_KEY",
+					endpoint = "https://api.deepseek.com",
+					model = "deepseek-coder",
+				},
+			},
 		}
-
-		if provider == "deepseek" then
-			config.vendors.deepseek = {
-				__inherited_from = "openai",
-				api_key_name = "DEEPSEEK_API_KEY",
-				endpoint = "https://api.deepseek.com",
-				model = "deepseek-coder",
-			}
-		end
 
 		return config
 	end,
