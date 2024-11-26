@@ -77,13 +77,31 @@ plugins["avante"] = {
 	categories = "ai",
 	event = "User Load",
 	version = false, -- set this if you want to always pull the latest change
-	opts = {
-		provider = "copilot",
-		auto_suggestions_provider = "copilot",
-		behaviour = {
-			auto_suggestions = true,
-		},
-	},
+	opts = function()
+		local _, local_v = pcall(require, "local_v")
+		local_v = local_v or {}
+		local provider = local_v.avante_provider or "copilot"
+
+		local config = {
+			provider = provider,
+			auto_suggestions_provider = provider,
+			behaviour = {
+				auto_suggestions = true,
+			},
+			vendors = {},
+		}
+
+		if provider == "deepseek" then
+			config.vendors.deepseek = {
+				__inherited_from = "openai",
+				api_key_name = "DEEPSEEK_API_KEY",
+				endpoint = "https://api.deepseek.com",
+				model = "deepseek-coder",
+			}
+		end
+
+		return config
+	end,
 	-- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
 	build = "make",
 	-- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
