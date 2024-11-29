@@ -28,6 +28,17 @@ M.read_file_lines = function(path)
 	return lines
 end
 
+---read whole file
+---@param path string
+---@return string|nil
+M.read_file = function(path)
+	local file = io.open(path, "r")
+	if not file then
+		return nil
+	end
+	return file:read("*a")
+end
+
 M.config_root = function()
 	return vim.fn.stdpath("config")
 end

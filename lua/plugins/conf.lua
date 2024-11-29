@@ -1,4 +1,5 @@
 local config = {}
+local util = lazy_require("lib.util")
 
 local php_lsp = "intelephense"
 
@@ -354,7 +355,6 @@ config.formatter = function()
 					".prettierrc.toml",
 					"prettier.config.js",
 					".prettierrc.js",
-					"package.json",
 				}
 
 				for _, file in ipairs(config_files) do
@@ -362,6 +362,23 @@ config.formatter = function()
 						vim.fs.find(file, { upward = true, path = ctx.dirname, type = "file" })
 					if #matches > 0 then
 						return {}
+					end
+				end
+
+				-- check package.json
+				local json_path = vim.fs.find(
+					"package.json",
+					{ upward = true, path = ctx.dirname, type = "file" }
+				)[1]
+				if json_path then
+					local json = util.read_file(json_path)
+					if json then
+						local content = vim.json.decode(json)
+						if content.prettier then
+							return {}
+						end
+					else
+						vim.notify("cannot read " .. json_path, vim.log.levels.ERROR)
 					end
 				end
 
