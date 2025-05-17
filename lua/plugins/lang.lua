@@ -21,6 +21,19 @@ plugins["nvim-ts-autotag"] = {
 	end,
 }
 
+-- css
+plugins["tailwindcss-colorizer-cmp"] = {
+	"roobert/tailwindcss-colorizer-cmp.nvim",
+	categories = { "lang", "tailwindcss" },
+	ft = { "css", "scss", "sass", "html", "js", "jsx", "ts", "tsx" },
+	-- optionally, override the default options:
+	config = function()
+		require("tailwindcss-colorizer-cmp").setup({
+			color_square_width = 2,
+		})
+	end,
+}
+
 -- rust
 plugins["rustaceanvim"] = {
 	"mrcjkb/rustaceanvim",
@@ -65,6 +78,7 @@ plugins["rustaceanvim"] = {
 	end,
 }
 
+-- haskell
 plugins["crates"] = {
 	"Saecki/crates.nvim",
 	categories = { "lang", "rust" },
@@ -74,6 +88,50 @@ plugins["crates"] = {
 			cmp = { enabled = true },
 		},
 	},
+}
+
+plugins["haskell-tools"] = {
+	"mrcjkb/haskell-tools.nvim",
+	version = "^3",
+	categories = { "lang", "haskell" },
+	ft = { "haskell", "lhaskell", "cabal", "cabalproject" },
+	dependencies = {
+		{ "nvim-telescope/telescope.nvim", optional = true },
+	},
+	config = function()
+		local ok, telescope = pcall(require, "telescope")
+		if ok then
+			telescope.load_extension("ht")
+		end
+	end,
+}
+
+plugins["neotest-haskell"] = { "mrcjkb/neotest-haskell", categories = { "lang", "haskell" } }
+
+plugins["haskell-snippets"] = {
+	"mrcjkb/haskell-snippets.nvim",
+	dependencies = { "L3MON4D3/LuaSnip" },
+	categories = { "lang", "haskell" },
+	ft = { "haskell", "lhaskell", "cabal", "cabalproject" },
+	config = function()
+		local haskell_snippets = require("haskell-snippets").all
+		require("luasnip").add_snippets("haskell", haskell_snippets, { key = "haskell" })
+	end,
+}
+
+plugins["telescope_hoogle"] = {
+	"luc-tielen/telescope_hoogle",
+	ft = { "haskell", "lhaskell", "cabal", "cabalproject" },
+	categories = { "lang", "haskell" },
+	dependencies = {
+		{ "nvim-telescope/telescope.nvim" },
+	},
+	config = function()
+		local ok, telescope = pcall(require, "telescope")
+		if ok then
+			telescope.load_extension("hoogle")
+		end
+	end,
 }
 
 -- json

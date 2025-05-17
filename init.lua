@@ -1,4 +1,4 @@
----lazu load module
+---lazy load module
 ---@param modname string
 ---@diagnostic disable-next-line: lowercase-global
 function lazy_require(modname)

@@ -68,21 +68,11 @@ plugins["nvim-dap"] = {
 		---@diagnostic disable undefined-field
 		local dap = require("dap")
 		local mason_registry = require("mason-registry")
-		local codelldb_root = mason_registry.get_package("codelldb"):get_install_path() .. "/extension/"
+
+		local codelldb_root = mason_registry.get_package("codelldb"):get_install_path()
+			.. "/extension/"
 		local codelldb_path = codelldb_root .. "adapter/codelldb"
 		local liblldb_path = codelldb_root .. "lldb/lib/liblldb.so"
-		dap.adapters = {
-			codelldb = {
-				type = "server",
-				port = "${port}",
-				host = "127.0.0.1",
-				executable = {
-					command = codelldb_path,
-					args = { "--liblldb", liblldb_path, "--port", "${port}" },
-				},
-			},
-		}
-
 		local codelldb_conf = {
 			{
 				type = "codelldb",
@@ -102,9 +92,69 @@ plugins["nvim-dap"] = {
 			},
 		}
 
+		local kt_conf = {
+			{
+				type = "kotlin",
+				request = "launch",
+				name = "This file",
+				-- may differ, when in doubt, whatever your project structure may be,
+				-- it has to correspond to the class file located at `build/classes/`
+				-- and of course you have to build before you debug
+				mainClass = function()
+					local root = vim.fs.find(
+						"src",
+						{ path = vim.uv.cwd(), upward = true, stop = vim.env.HOME }
+					)[1] or ""
+					local fname = vim.api.nvim_buf_get_name(0)
+					-- src/main/kotlin/websearch/Main.kt -> websearch.MainKt
+					return fname
+						:gsub(root, "")
+						:gsub("main/kotlin/", "")
+						:gsub(".kt", "Kt")
+						:gsub("/", ".")
+						:sub(2, -1)
+				end,
+				projectRoot = "${workspaceFolder}",
+				jsonLogFile = "",
+				enableJsonLogging = false,
+			},
+			{
+				-- Use this for unit tests
+				-- First, run
+				-- ./gradlew --info cleanTest test --debug-jvm
+				-- then attach the debugger to it
+				type = "kotlin",
+				request = "attach",
+				name = "Attach to debugging session",
+				port = 5005,
+				args = {},
+				projectRoot = vim.fn.getcwd,
+				hostName = "localhost",
+				timeout = 2000,
+			},
+		}
+
+		dap.adapters = {
+			codelldb = {
+				type = "server",
+				port = "${port}",
+				host = "127.0.0.1",
+				executable = {
+					command = codelldb_path,
+					args = { "--liblldb", liblldb_path, "--port", "${port}" },
+				},
+			},
+			kotlin = {
+				type = "executable",
+				command = "kotlin-debug-adapter",
+				options = { auto_continue_if_many_stopped = false },
+			},
+		}
+
 		dap.configurations = {
 			c = codelldb_conf,
 			cpp = codelldb_conf,
+			kotlin = kt_conf,
 		}
 
 		---@diagnostic enable undefined-field

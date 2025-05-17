@@ -118,6 +118,17 @@ config.lsp = function()
 				},
 			},
 		}),
+		["ruff"] = lsp_lib.create_config({
+			cmd_env = { RUFF_TRACE = "messages" },
+			init_options = {
+				settings = {
+					logLevel = "error",
+				},
+			},
+			on_attach = function(client, _)
+				client.server_capabilities.hoverProvider = false
+			end,
+		}),
 		["pyright"] = lsp_lib.create_config({
 			root_dir = function()
 				return (vim.loop or vim.uv).cwd()
@@ -173,7 +184,15 @@ config.lsp = function()
 		}),
 		["neocmake"] = lsp_lib.create_config(),
 		["html"] = lsp_lib.create_config(),
-		["cssls"] = lsp_lib.create_config(),
+		["cssls"] = lsp_lib.create_config({
+			settings = {
+				css = {
+					lint = {
+						unknownAtRules = "ignore",
+					},
+				},
+			},
+		}),
 		volar = lsp_lib.create_config(function()
 			return {
 				init_options = {
@@ -186,13 +205,32 @@ config.lsp = function()
 				},
 			}
 		end),
-		["eslint"] = lsp_lib.create_config({
-			settings = {
-				workingDirectories = { mode = "auto" },
+		["biome"] = lsp_lib.create_config({
+			cmd = { "biome", "lsp-proxy" },
+			single_file_support = false,
+			root_dir = require("lspconfig.util").root_pattern("biome.json", "biome.jsonc"),
+			filetypes = {
+				"astro",
+				"css",
+				"graphql",
+				"javascript",
+				"javascriptreact",
+				"json",
+				"jsonc",
+				"svelte",
+				"typescript",
+				"typescript.tsx",
+				"typescriptreact",
+				"vue",
 			},
-		}, {
-			inherit_keybindings = false,
 		}),
+		--["eslint"] = lsp_lib.create_config({
+		--	settings = {
+		--		workingDirectories = { mode = "auto" },
+		--	},
+		--}, {
+		--	inherit_keybindings = false,
+		--}),
 		["ts_ls"] = lsp_lib.create_config(function()
 			local volar_path =
 				util.get_pkg_path("vue-language-server", "node_modules/@vue/language-server")
@@ -205,17 +243,34 @@ config.lsp = function()
 							languages = { "vue", "typescript", "javascript" },
 						},
 					},
+					preferences = {
+						importModuleSpecifierPreference = "shortest",
+						-- other settings
+					},
 				},
 				filetypes = {
-					"typescript",
 					"javascript",
 					"javascriptreact",
+					"javascript.jsx",
+					"typescript",
 					"typescriptreact",
+					"typescript.tsx",
 					"vue",
 				},
 			}
 		end),
 		["taplo"] = lsp_lib.create_config(),
+		["tailwindcss"] = lsp_lib.create_config({
+			filetypes_exclude = { "markdown" },
+		}),
+		["hls"] = lsp_lib.create_config(),
+		["kotlin_language_server"] = lsp_lib.create_config(function()
+			return {
+				root_dir = vim.fs.dirname(
+					vim.fs.find({ "settings.gradle", "settings.gradle.kts" }, { upward = true })[1]
+				),
+			}
+		end),
 	}
 
 	local php_lsp_opts = {
@@ -236,6 +291,7 @@ config.lsp = function()
 	return config.lsp()
 end
 config.treesitter = {
+	"kotlin",
 	"c",
 	"c_sharp",
 	"cpp",
@@ -263,6 +319,7 @@ config.treesitter = {
 	"markdown_inline",
 	"latex",
 	"vue",
+	"haskell",
 }
 
 -- autotag filetypes
@@ -281,6 +338,7 @@ config.autotag_ft = {
 -- mason configs
 config.mason = {
 	packages = {
+		"ktlint",
 		"tree-sitter-cli",
 		"stylua",
 		"prettier",
@@ -291,6 +349,9 @@ config.mason = {
 		"markdown-toc",
 		"phpcs",
 		"php-cs-fixer",
+		"biome",
+		"haskell-language-server",
+		"haskell-debug-adapter",
 	},
 }
 
@@ -302,27 +363,28 @@ config.formatter = function()
 	formatter.ft = {
 		lua = { "stylua" },
 		python = { "isort", "black" },
-		["javascriptreact"] = { "prettier" },
-		["typescriptreact"] = { "prettier" },
-		["vue"] = { "prettier" },
-		["css"] = { "prettier" },
-		["scss"] = { "prettier" },
-		["less"] = { "prettier" },
-		["html"] = { "prettier" },
-		["json"] = { "prettier" },
-		["jsonc"] = { "prettier" },
-		["yaml"] = { "prettier" },
-		["graphql"] = { "prettier" },
-		["handlebars"] = { "prettier" },
-		javascript = { "prettier" },
-		typescript = { "prettier" },
+		["javascriptreact"] = { "biome" },
+		["typescriptreact"] = { "biome" },
+		["vue"] = { "biome" },
+		["css"] = { "biome" },
+		["scss"] = { "biome" },
+		["less"] = { "biome" },
+		["html"] = { "biome" },
+		["json"] = { "biome" },
+		["jsonc"] = { "biome" },
+		["yaml"] = { "biome" },
+		["graphql"] = { "biome" },
+		["handlebars"] = { "biome" },
+		javascript = { "biome" },
+		typescript = { "biome" },
 		cs = { "clang-format" },
 		c = { "clang-format" },
 		cpp = { "clang-format" },
 		cmake = { "cmakelang" },
-		["markdown"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
-		["markdown.mdx"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
+		["markdown"] = { "biome", "markdownlint", "markdown-toc", stop_after_first = true },
+		["markdown.mdx"] = { "biome", "markdownlint", "markdown-toc", stop_after_first = true },
 		php = { "php_cs_fixer" },
+		kotlin = { "ktlint" },
 	}
 
 	---@diagnostic disable-next-line: undefined-doc-name
@@ -394,6 +456,7 @@ config.formatter = function()
 	formatter.format_on_save_exclude_ft = {
 		"markdown",
 		"vue",
+		"kotlin",
 	}
 
 	config.formatter = function()

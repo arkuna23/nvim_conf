@@ -5,6 +5,8 @@ ARCH_PACKAGES=(
     gitui
     rustup
     neovim
+    ghcup-hs-bin
+    stack
 )
 
 . /etc/os-release

@@ -118,6 +118,7 @@ plugins["neo-tree"] = {
 				hide_dotfiles = false,
 			},
 			use_libuv_file_watcher = true,
+			group_empty_dirs = true,
 		}
 	end,
 	config = function(_, opts)

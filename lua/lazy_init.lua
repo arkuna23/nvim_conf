@@ -21,6 +21,15 @@ vim.api.nvim_create_autocmd("CmdlineEnter", {
 
 require("config.init")
 
+-- prevent file deletion while saving
+local file = vim.fs.find(
+	{ "package.json", "webpack.config.js", ".eslintrc.js" },
+	{ upward = true, type = "file" }
+)[1]
+if file and vim.fn.filereadable(file) == 1 then
+	vim.o.backupcopy = "yes"
+end
+
 --disable plugins if file size bigger than 4mb
 local loadplugin = true
 local filepath = vim.api.nvim_buf_get_name(0)

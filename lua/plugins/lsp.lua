@@ -22,7 +22,7 @@ plugins["nvim-lspconfig"] = {
 }
 
 plugins["mason-lspconfig"] = {
-	"williamboman/mason-lspconfig.nvim",
+	"mason-org/mason-lspconfig.nvim",
 	lazy = true,
 	categories = "lsp",
 	dependencies = {
@@ -46,7 +46,7 @@ plugins["refactoring"] = {
 }
 
 plugins["mason"] = {
-	"williamboman/mason.nvim",
+	"mason-org/mason.nvim",
 	event = "User Load",
 	categories = "lsp",
 	cmd = "Mason",
