@@ -177,40 +177,40 @@ end
 --- @field whichkey wk.Spec|(fun(): wk.Spec)|nil which-key bindings
 
 --- create new config based on default config
---- @param append_tbl table|optvalue
+--- @param tbl table|optvalue
 --- @param opts ConfigOpts|nil
-lsp.create_config = function(append_tbl, opts)
+lsp.create_config = function(tbl, opts)
 	return function()
 		local util = require("lib.util")
-		append_tbl = util.parse_dyn_value(append_tbl)
-		append_tbl = append_tbl or {}
+		local new_tbl = util.parse_dyn_value(tbl)
+		new_tbl = new_tbl or {}
 
-		opts = table.default_values(opts, {
+		local l_opts = table.default_values(opts, {
 			inherit_on_attach = true,
 			inherit_keybindings = true,
 		})
-		util.process_dyn_table(opts, { "setup" })
+		util.process_dyn_table(l_opts, { "setup" })
 
-		local new_attach = append_tbl.on_attach
-		append_tbl.on_attach = function(client, bufnr)
-			if opts.inherit_on_attach then
+		local new_attach = new_tbl.on_attach
+		new_tbl.on_attach = function(client, bufnr)
+			if l_opts.inherit_on_attach then
 				lsp_default_on_attach(client, bufnr)
 			end
-			if opts.inherit_keybindings then
+			if l_opts.inherit_keybindings then
 				lsp.key_attach(bufnr, lsp_default_keybindings)
 				require("which-key").add({
 					{ "<leader>x", group = "diagnostics", buffer = bufnr },
 					{ "<leader>c", group = "lsp", buffer = bufnr },
 				})
 			end
-			if opts.keybindings then
-				lsp.key_attach(bufnr, opts.keybindings)
+			if l_opts.keybindings then
+				lsp.key_attach(bufnr, l_opts.keybindings)
 			end
-			if opts.whichkey then
-				for _, value in ipairs(opts.whichkey) do
+			if l_opts.whichkey then
+				for _, value in ipairs(l_opts.whichkey) do
 					value.buffer = bufnr
 				end
-				require("which-key").add(opts.whichkey, {
+				require("which-key").add(l_opts.whichkey, {
 					buffer = bufnr,
 				})
 			end
@@ -218,9 +218,9 @@ lsp.create_config = function(append_tbl, opts)
 				new_attach(client, bufnr)
 			end
 		end
-		local new_conf = vim.tbl_extend("force", lsp_default_config(), append_tbl)
-		if opts.setup then
-			new_conf = opts.setup(new_conf) or new_conf
+		local new_conf = vim.tbl_extend("force", lsp_default_config(), new_tbl)
+		if l_opts.setup then
+			new_conf = l_opts.setup(new_conf) or new_conf
 		end
 
 		return new_conf

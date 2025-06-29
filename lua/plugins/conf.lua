@@ -193,18 +193,6 @@ config.lsp = function()
 				},
 			},
 		}),
-		volar = lsp_lib.create_config(function()
-			return {
-				init_options = {
-					typescript = {
-						tsdk = util.get_pkg_path(
-							"typescript-language-server",
-							"node_modules/typescript/lib"
-						),
-					},
-				},
-			}
-		end),
 		["biome"] = lsp_lib.create_config({
 			cmd = { "biome", "lsp-proxy" },
 			single_file_support = false,
