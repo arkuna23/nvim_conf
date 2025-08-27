@@ -369,8 +369,8 @@ config.formatter = function()
 		c = { "clang-format" },
 		cpp = { "clang-format" },
 		cmake = { "cmakelang" },
-		["markdown"] = { "biome", "markdownlint", "markdown-toc", stop_after_first = true },
-		["markdown.mdx"] = { "biome", "markdownlint", "markdown-toc", stop_after_first = true },
+		["markdown"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
+		["markdown.mdx"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
 		php = { "php_cs_fixer" },
 		kotlin = { "ktlint" },
 	}
@@ -395,6 +395,9 @@ config.formatter = function()
 					"-style=file:" .. file,
 				}
 			end,
+		},
+		biome = {
+			require_cwd = true,
 		},
 		["prettier"] = {
 			prepend_args = function(_, ctx)
