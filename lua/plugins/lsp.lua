@@ -12,7 +12,7 @@ plugins["nvim-lspconfig"] = {
 				if string.sub(k, 1, 1) ~= "_" then
 					if not require("neoconf").get(k .. ".disable") then
 						local opts = v()
-						require("lspconfig")[k].setup(opts)
+						vim.lsp.config[k] = opts
 					end
 				end
 			end

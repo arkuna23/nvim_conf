@@ -2,6 +2,7 @@ local g = vim.g
 local opt = vim.opt
 
 g.encoding = "UTF-8"
+g.have_nerd_font = true
 opt.fileencoding = "utf-8"
 vim.opt.termguicolors = true
 

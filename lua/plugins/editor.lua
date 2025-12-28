@@ -96,8 +96,8 @@ plugins["nvim-cmp"] = {
 					fallback()
 				end,
 			}),
-			---@diagnostic disable-next-line: missing-fields
 			formatting = {
+				fields = { "abbr", "menu", "kind" },
 				format = lspkind.cmp_format({
 					mode = "symbol",
 					maxwidth = 30,

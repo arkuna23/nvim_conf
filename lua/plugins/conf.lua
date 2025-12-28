@@ -259,6 +259,12 @@ config.lsp = function()
 				),
 			}
 		end),
+		["zls"] = lsp_lib.create_config({
+			settings = {
+				enable_build_on_save = true,
+				build_on_save_args = { "-fincremental" },
+			},
+		}),
 	}
 
 	local php_lsp_opts = {
@@ -308,6 +314,7 @@ config.treesitter = {
 	"latex",
 	"vue",
 	"haskell",
+	"zig",
 }
 
 -- autotag filetypes

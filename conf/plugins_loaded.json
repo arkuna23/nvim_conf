@@ -1,6 +1,8 @@
 {
     "colorschemes": {
-        "enabled": ["tokyonight"]
+        "enabled": [
+            "tokyonight"
+        ]
     },
     "ui": true,
     "etc": true,
@@ -10,8 +12,10 @@
     "editor": true,
     "ai": {
         "copilot": {
-            "enabled": ["copilot"]
+            "enabled": [
+                "copilot"
+            ]
         },
-        "enabled": ["avante"]
+        "enabled": []
     }
 }
