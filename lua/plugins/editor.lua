@@ -43,7 +43,6 @@ plugins["nvim-cmp"] = {
 	config = function()
 		local lspkind = require("lspkind")
 		lspkind.init({
-			mode = "symbol",
 			preset = "codicons",
 			symbol_map = require("lib.symbols"),
 		})

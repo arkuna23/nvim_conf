@@ -74,25 +74,23 @@ config.lsp = function()
 			},
 		}),
 		["clangd"] = lsp_lib.create_config({
-			root_dir = function(fname)
-				return require("lspconfig.util").root_pattern(
-					"Makefile",
-					"configure.ac",
-					"configure.in",
-					"config.h.in",
-					"meson.build",
-					"meson_options.txt",
-					"build.ninja"
-				)(fname) or require("lspconfig.util").root_pattern(
-					"compile_commands.json",
-					"compile_flags.txt"
-				)(fname) or vim.fs.dirname(
-					vim.fs.find(".git", { path = fname, upward = true })[1]
-				)
-			end,
+			root_dir = require("lspconfig.util").root_pattern(
+				"Makefile",
+				"configure.ac",
+				"configure.in",
+				"config.h.in",
+				"meson.build",
+				"meson_options.txt",
+				"build.ninja",
+				"compile_commands.json",
+				"compile_flags.txt",
+				"CMakeLists.txt",
+				".git"
+			)(),
 			capabilities = {
 				offsetEncoding = { "utf-16" },
 			},
+			filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "proto" },
 			cmd = {
 				"clangd",
 				"--background-index",
@@ -108,7 +106,6 @@ config.lsp = function()
 				clangdFileStatus = true,
 			},
 		}, {
-			inherit_on_attach = true,
 			keybindings = {
 				{
 					"<leader>ch",
@@ -196,7 +193,7 @@ config.lsp = function()
 		["biome"] = lsp_lib.create_config({
 			cmd = { "biome", "lsp-proxy" },
 			single_file_support = false,
-			root_dir = require("lspconfig.util").root_pattern("biome.json", "biome.jsonc"),
+			root_dir = require("lspconfig.util").root_pattern("biome.json", "biome.jsonc")(),
 			filetypes = {
 				"astro",
 				"css",
@@ -223,6 +220,7 @@ config.lsp = function()
 			local volar_path =
 				util.get_pkg_path("vue-language-server", "node_modules/@vue/language-server")
 			return {
+				root_dir = require("lspconfig.util").root_pattern("package.json")(),
 				init_options = {
 					plugins = {
 						{
@@ -265,6 +263,7 @@ config.lsp = function()
 				build_on_save_args = { "-fincremental" },
 			},
 		}),
+		["jdtls"] = lsp_lib.create_config(),
 	}
 
 	local php_lsp_opts = {
@@ -286,6 +285,7 @@ config.lsp = function()
 end
 config.treesitter = {
 	"kotlin",
+	"java",
 	"c",
 	"c_sharp",
 	"cpp",
@@ -347,6 +347,8 @@ config.mason = {
 		"biome",
 		"haskell-language-server",
 		"haskell-debug-adapter",
+		"java-debug-adapter",
+		"java-test",
 	},
 }
 
@@ -375,16 +377,21 @@ config.formatter = function()
 		cs = { "clang-format" },
 		c = { "clang-format" },
 		cpp = { "clang-format" },
-		cmake = { "cmakelang" },
 		["markdown"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
 		["markdown.mdx"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
 		php = { "php_cs_fixer" },
 		kotlin = { "ktlint" },
+		zig = { "zigfmt" },
 	}
 
 	---@diagnostic disable-next-line: undefined-doc-name
 	--- @type table<string, conform.FormatterConfigOverride|fun(bufnr: integer): nil|conform.FormatterConfigOverride>
 	formatter.config = {
+		zigfmt = {
+			command = "zig",
+			args = { "fmt", "--stdin" },
+			stdin = true,
+		},
 		shfmt = {
 			prepend_args = { "-i", "2" },
 		},

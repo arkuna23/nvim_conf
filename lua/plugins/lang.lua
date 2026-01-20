@@ -253,6 +253,9 @@ plugins["cmake-tools"] = {
 		cmake_runner = {
 			name = "toggleterm",
 		},
+		cmake_generate_options = { "-DCMAKE_EXPORT_COMPILE_COMMANDS=1" },
+		cmake_soft_link_compile_commands = true,
+		compile_commands_link = "compile_commands.json",
 	},
 }
 

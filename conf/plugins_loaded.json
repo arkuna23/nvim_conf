@@ -11,11 +11,6 @@
     "lang": true,
     "editor": true,
     "ai": {
-        "copilot": {
-            "enabled": [
-                "copilot"
-            ]
-        },
-        "enabled": []
+        "enabled": ["avante"]
     }
 }
