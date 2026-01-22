@@ -241,4 +241,19 @@ M.get_proper_layout = function()
 		or "vertical"
 end
 
+---convert array to hash table
+---@param array any[]|nil
+---@return table|nil
+M.array_to_hash = function(array)
+	if not array then
+		return nil
+	end
+
+	local hash = {}
+	for _, v in ipairs(array) do
+		hash[v] = true
+	end
+	return hash
+end
+
 return M

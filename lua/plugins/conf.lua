@@ -2,6 +2,16 @@ local config = {}
 
 local php_lsp = "intelephense"
 
+-- process editor language config
+local editor_lang = nil
+local usr_config = require("user_config")
+if usr_config.editor_lang then
+	editor_lang = {}
+	for _, lang in pairs(usr_config.editor_lang) do
+		editor_lang[lang] = true
+	end
+end
+
 -- lsp configs
 config.lsp = function()
 	local lsp_lib = require("lib.lsp")
@@ -36,6 +46,7 @@ config.lsp = function()
 				table.insert(runtime_path, "lua/?/init.lua")
 				return opts
 			end,
+			lang = "lua",
 		}),
 		["omnisharp"] = lsp_lib.create_config({
 			cmd = {
@@ -54,6 +65,7 @@ config.lsp = function()
 			analyze_open_documents_only = false,
 		}, {
 			inherit_on_attach = true,
+			lang = "c#",
 		}),
 		["emmet_ls"] = lsp_lib.create_config({
 			filetypes = {
@@ -72,7 +84,7 @@ config.lsp = function()
 					},
 				},
 			},
-		}),
+		}, { lang = "emmet" }),
 		["clangd"] = lsp_lib.create_config({
 			root_dir = require("lspconfig.util").root_pattern(
 				"Makefile",
@@ -114,6 +126,7 @@ config.lsp = function()
 					"Switch Source/Header (C/C++)",
 				},
 			},
+			lang = "c/cpp",
 		}),
 		["ruff"] = lsp_lib.create_config({
 			cmd_env = { RUFF_TRACE = "messages" },
@@ -125,13 +138,17 @@ config.lsp = function()
 			on_attach = function(client, _)
 				client.server_capabilities.hoverProvider = false
 			end,
+		}, {
+			lang = "python",
 		}),
 		["pyright"] = lsp_lib.create_config({
 			root_dir = function()
 				return (vim.loop or vim.uv).cwd()
 			end,
+		}, {
+			lang = "python",
 		}),
-		["jsonls"] = function()
+		["jsonls"] = lsp_lib.create_config(function()
 			return {
 				-- lazy-load schemastore when needed
 				on_new_config = function(new_config)
@@ -160,7 +177,9 @@ config.lsp = function()
 					},
 				},
 			}
-		end,
+		end, {
+			lang = "json",
+		}),
 		texlab = lsp_lib.create_config({}, {
 			inherit_on_attach = true,
 			keybindings = {
@@ -171,16 +190,22 @@ config.lsp = function()
 			whichkey = {
 				{ "<leader>l", group = "vimtex" },
 			},
+			lang = "tex",
 		}),
-		["bashls"] = lsp_lib.create_config(),
+		["bashls"] = lsp_lib.create_config({}, {
+			lang = "bash",
+		}),
 		["marksman"] = lsp_lib.create_config({}, {
 			whichkey = {
 				{ "<leader>m", group = "markdown" },
 				{ "<leader>mm", group = "markmap" },
 			},
+			lang = "markdown",
 		}),
-		["neocmake"] = lsp_lib.create_config(),
-		["html"] = lsp_lib.create_config(),
+		["neocmake"] = lsp_lib.create_config({}, {
+			lang = "cmake",
+		}),
+		["html"] = lsp_lib.create_config({}, { lang = "html" }),
 		["cssls"] = lsp_lib.create_config({
 			settings = {
 				css = {
@@ -189,6 +214,8 @@ config.lsp = function()
 					},
 				},
 			},
+		}, {
+			lang = "css",
 		}),
 		["biome"] = lsp_lib.create_config({
 			cmd = { "biome", "lsp-proxy" },
@@ -208,6 +235,8 @@ config.lsp = function()
 				"typescriptreact",
 				"vue",
 			},
+		}, {
+			lang = "js",
 		}),
 		--["eslint"] = lsp_lib.create_config({
 		--	settings = {
@@ -244,26 +273,42 @@ config.lsp = function()
 					"vue",
 				},
 			}
-		end),
-		["taplo"] = lsp_lib.create_config(),
+		end, {
+			lang = "js",
+		}),
+		["taplo"] = lsp_lib.create_config({}, {
+			lang = "toml",
+		}),
 		["tailwindcss"] = lsp_lib.create_config({
 			filetypes_exclude = { "markdown" },
+		}, {
+			lang = "tailwind",
 		}),
-		["hls"] = lsp_lib.create_config(),
+		["hls"] = lsp_lib.create_config({}, {
+			lang = "haskell",
+		}),
 		["kotlin_language_server"] = lsp_lib.create_config(function()
 			return {
 				root_dir = vim.fs.dirname(
 					vim.fs.find({ "settings.gradle", "settings.gradle.kts" }, { upward = true })[1]
 				),
 			}
-		end),
-		["zls"] = lsp_lib.create_config({
-			settings = {
-				enable_build_on_save = true,
-				build_on_save_args = { "-fincremental" },
-			},
+		end, {
+			lang = "kotlin",
 		}),
-		["jdtls"] = lsp_lib.create_config(),
+		["zls"] = lsp_lib.create_config(function()
+			return {
+				settings = {
+					enable_build_on_save = true,
+					build_on_save_args = { "-fincremental" },
+				},
+			}
+		end, {
+			lang = "zig",
+		}),
+		["jdtls"] = lsp_lib.create_config({}, {
+			lang = "java",
+		}),
 	}
 
 	local php_lsp_opts = {
@@ -276,6 +321,14 @@ config.lsp = function()
 		conf.intelephense = lsp_lib.create_config(php_lsp_opts)
 	elseif php_lsp == "phpactor" then
 		conf.phpactor = lsp_lib.create_config(php_lsp_opts)
+	end
+
+	if editor_lang then
+		for name, lsp_conf in pairs(conf) do
+			if lsp_conf.__language and not editor_lang[lsp_conf.__language] then
+				conf[name] = nil
+			end
+		end
 	end
 
 	config.lsp = function()

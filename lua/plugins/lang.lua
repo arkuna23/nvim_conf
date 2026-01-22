@@ -291,4 +291,19 @@ plugins["lazydev"] = {
 	},
 }
 
+local editor_lang = require("user_config").editor_lang
+
+if editor_lang then
+	local enabled = {}
+	for _, lang in ipairs(editor_lang) do
+		enabled[lang] = true
+	end
+
+	for _, plugin in pairs(plugins) do
+		if not enabled[plugin.categories[2]] then
+			plugin.enabled = false
+		end
+	end
+end
+
 return plugins

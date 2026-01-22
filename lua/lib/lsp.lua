@@ -175,12 +175,13 @@ end
 --- @field inherit_keybindings boolean|optvalue whether inherit default keymaps, default is true
 --- @field keybindings table[]|optvalue lsp keybindings
 --- @field whichkey wk.Spec|(fun(): wk.Spec)|nil which-key bindings
+--- @field lang string|nil lsp language
 
 --- create new config based on default config
 --- @param tbl table|optvalue
 --- @param opts ConfigOpts|nil
 lsp.create_config = function(tbl, opts)
-	return function()
+	local func = function()
 		local util = require("lib.util")
 		local new_tbl = util.parse_dyn_value(tbl)
 		new_tbl = new_tbl or {}
@@ -225,6 +226,12 @@ lsp.create_config = function(tbl, opts)
 
 		return new_conf
 	end
+
+	return setmetatable({
+		__language = opts and opts.lang,
+	}, {
+		__call = func,
+	})
 end
 
 ---@param on_attach fun(client:vim.lsp.Client, buffer)

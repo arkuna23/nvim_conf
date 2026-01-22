@@ -39,11 +39,11 @@ plugins["copilot"] = {
 	cmd = "Copilot",
 	build = ":Copilot auth",
 	opts = function()
-		local succ, local_v = pcall(require, "local_v")
+		local succ, usr_config = pcall(require, "user_config")
 		return {
 			suggestion = { enabled = false },
 			panel = { enabled = false },
-			auth_provider_url = succ and local_v.copilot_auth_url or nil,
+			auth_provider_url = succ and usr_config.copilot_auth_url or nil,
 			filetypes = {
 				markdown = true,
 				help = true,
@@ -77,9 +77,9 @@ plugins["avante"] = {
 	categories = "ai",
 	event = "User Load",
 	opts = function()
-		local _, local_v = pcall(require, "local_v")
-		local_v = local_v or {}
-		local avante = local_v.avante or {}
+		local _, usr_config = pcall(require, "user_config")
+		usr_config = usr_config or {}
+		local avante = usr_config.avante or {}
 
 		local config = {
 			provider = avante.chat_provider or "copilot",
