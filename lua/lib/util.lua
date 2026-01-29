@@ -256,4 +256,8 @@ M.array_to_hash = function(array)
 	return hash
 end
 
+M.is_docker = function()
+	return vim.fn.empty(vim.fn.glob("/.dockerenv")) == 0
+end
+
 return M

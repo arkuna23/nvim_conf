@@ -1,4 +1,5 @@
 local manager = lazy_require("lib.manager")
+local util = lazy_require("lib.util")
 
 COLORSCHEME = "tokyonight"
 
@@ -8,16 +9,18 @@ vim.api.nvim_create_user_command(
 	{ desc = "toggle lazy.nvim and plugins state" }
 )
 
---disable shada load at startup
-vim.o.shadafile = "NONE"
-vim.api.nvim_create_autocmd("CmdlineEnter", {
-	once = true,
-	callback = function()
-		local shada = vim.fn.stdpath("state") .. "/shada/main.shada"
-		vim.o.shadafile = shada
-		vim.api.nvim_command("rshada! " .. shada)
-	end,
-})
+if not util.is_docker() then
+	--disable shada load at startup
+	vim.o.shadafile = "NONE"
+	vim.api.nvim_create_autocmd("CmdlineEnter", {
+		once = true,
+		callback = function()
+			local shada = vim.fn.stdpath("state") .. "/shada/main.shada"
+			vim.o.shadafile = shada
+			vim.api.nvim_command("rshada! " .. shada)
+		end,
+	})
+end
 
 require("config.init")
 

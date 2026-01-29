@@ -228,18 +228,16 @@ plugins["nvim-treesitter"] = {
 			},
 			indent = {
 				enable = true,
-				-- conflicts with flutter-tools.nvim, causing performance issues
-				disable = { "dart" },
 			},
 		}
 	end,
 	config = function(_, opts)
-		require("nvim-treesitter.install").prefer_git = true
-		require("nvim-treesitter.configs").setup(opts)
+		require("nvim-treesitter").setup(opts)
 
 		vim.opt.foldmethod = "expr"
-		vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
-		vim.opt.foldenable = false
+		vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+		vim.opt.foldlevel = 99
+		vim.opt.foldcolumn = "1"
 
 		local rainbow_delimiters = require("rainbow-delimiters")
 

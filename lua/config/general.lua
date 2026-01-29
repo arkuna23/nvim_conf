@@ -4,24 +4,37 @@ local opt = vim.opt
 g.encoding = "UTF-8"
 g.have_nerd_font = true
 opt.fileencoding = "utf-8"
-vim.opt.termguicolors = true
+opt.termguicolors = true
 
 opt.number = true
 opt.relativenumber = true
-opt.clipboard:append("unnamedplus")
 opt.signcolumn = "yes"
 opt.colorcolumn = "100"
 
 opt.tabstop = 4
 opt.softtabstop = 4
-opt.shiftround = true
+opt.shiftwidth = 4
 opt.expandtab = true
-vim.o.shiftwidth = 4
+opt.shiftround = true
+
 opt.mouse = "a"
 opt.timeoutlen = 500
 
-local win_height = vim.fn.winheight(0)
-opt.scrolloff = math.floor((win_height - 1) / 2)
-opt.sidescrolloff = math.floor((win_height - 1) / 2)
+opt.clipboard:append("unnamedplus")
+
+if g.neovide then
+	vim.g.neovide_input_use_subcommand = true
+elseif vim.fn.has("nvim-0.10") == 1 then
+	vim.g.clipboard = {
+		name = "OSC 52",
+		copy = {
+			["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+			["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+		},
+	}
+end
+
+opt.scrolloff = 10
+opt.sidescrolloff = 10
 
 return {}
