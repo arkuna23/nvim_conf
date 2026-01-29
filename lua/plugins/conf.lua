@@ -18,12 +18,17 @@ config.lsp = function()
 	local util = require("lib.util")
 	local conf = {
 		lua_ls = lsp_lib.create_config({
+			root_dir = require("lspconfig.util").root_pattern(
+				".luarc.json",
+				".luarc.jsonc",
+				".luacheckrc",
+				".stylua.toml",
+				".git"
+			)(),
 			settings = {
 				Lua = {
 					runtime = {
-						version = "LuaJIT",
-						---@diagnostic disable-next-line: undefined-global
-						path = runtime_path,
+						version = "Lua 5.1",
 					},
 					diagnostics = {
 						globals = { "vim" },
@@ -40,12 +45,6 @@ config.lsp = function()
 				},
 			},
 		}, {
-			setup = function(opts)
-				local runtime_path = vim.split(package.path, ";")
-				table.insert(runtime_path, "lua/?.lua")
-				table.insert(runtime_path, "lua/?/init.lua")
-				return opts
-			end,
 			lang = "lua",
 		}),
 		["omnisharp"] = lsp_lib.create_config({
@@ -383,26 +382,66 @@ config.autotag_ft = {
 	"javascript",
 }
 
--- mason configs
-config.mason = {
-	packages = {
-		"ktlint",
-		"tree-sitter-cli",
-		"stylua",
-		"prettier",
-		"cmakelang",
-		"clang-format",
-		"isort",
+---@class MasonPackage: string[]
+---@field lang string
+
+---@type (string|MasonPackage)[]
+local mason_packages = {
+	{ "ktlint", lang = "kotlin" },
+	"tree-sitter-cli",
+	{ "stylua", lang = "lua" },
+	{ "prettier", "biome", lang = "js/ts" },
+	{ "cmakelang", "clang-format", lang = "c/cpp" },
+	{ "isort", lang = "python" },
+	{
 		"markdownlint",
 		"markdown-toc",
+		lang = "markdown",
+	},
+	{
 		"phpcs",
 		"php-cs-fixer",
-		"biome",
+		lang = "php",
+	},
+	{
 		"haskell-language-server",
 		"haskell-debug-adapter",
+		lang = "haskell",
+	},
+	{
 		"java-debug-adapter",
 		"java-test",
+		lang = "java",
 	},
+}
+
+-- mason configs
+config.mason = {
+	packages = function()
+		local packages = {}
+		for _, pkg in ipairs(mason_packages) do
+			local ty = type(pkg)
+
+			if ty == "table" then
+				if editor_lang and not editor_lang[pkg.lang] then
+					goto continue
+				end
+
+				for _, value in ipairs(pkg) do
+					table.insert(packages, value)
+				end
+			else
+				table.insert(packages, pkg)
+			end
+			::continue::
+		end
+
+		config.mason.packages = function()
+			return packages
+		end
+
+		return packages
+	end,
 }
 
 config.formatter = function()

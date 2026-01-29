@@ -83,7 +83,7 @@ plugins["mason"] = {
 
 		-- install packages
 		mr.refresh(function()
-			for _, tool in ipairs(require("plugins.conf").mason.packages) do
+			for _, tool in ipairs(require("plugins.conf").mason.packages()) do
 				local p = mr.get_package(tool)
 				if not p:is_installed() then
 					p:install()

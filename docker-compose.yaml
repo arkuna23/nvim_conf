@@ -1,0 +1,22 @@
+services:
+  dev-env:
+    build:
+      context: .
+      network: host
+      args:
+        - LANGS=${LANGS}
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
+    image: dev-env
+    network_mode: host
+
+    stdin_open: true
+    tty: true
+    container_name: dev-container
+
+    environment:
+      - http_proxy=${http_proxy}
+      - https_proxy=${https_proxy}
+
+    volumes:
+      - ~/.wakatime.cfg:/home/dev/.wakatime.cfg:rw

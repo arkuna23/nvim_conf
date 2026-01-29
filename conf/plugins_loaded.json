@@ -11,6 +11,6 @@
     "lang": true,
     "editor": true,
     "ai": {
-        "enabled": ["avante"]
+        "enabled": []
     }
 }

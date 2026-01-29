@@ -13,7 +13,7 @@ end
 
 -- 1. Define Package Lists
 local packages = {
-	common = { "jq", "neovim", "ripgrep", "git", "curl" },
+	common = { "jq", "ripgrep", "git", "curl", "tar" },
 	arch = { "base-devel" },
 	debian = { "build-essential" },
 	ubuntu = { "build-essential" },
@@ -23,21 +23,44 @@ local packages = {
 	},
 }
 
--- 2. Build Master List (English comments)
+-- 2. Utility functions
+local function run_cmd(cmd)
+	-- Smart sudo: remove sudo if running as root (common in Docker)
+	if os.execute("id -u > /dev/null 2>&1") == 0 then
+		cmd = cmd:gsub("sudo ", "")
+	end
+	print(">> Executing: " .. cmd)
+	local res = os.execute(cmd)
+	return res == 0 or res == true
+end
+
+local function install_latest_neovim()
+	print("--- Installing Latest Stable Neovim (v0.10+) ---")
+	local archive = "nvim-linux-x86_64.tar.gz"
+	local url = "https://github.com/neovim/neovim/releases/latest/download/" .. archive
+
+	local download_cmd = string.format("cd /tmp && curl -LO %s", url)
+
+	if run_cmd(download_cmd) then
+		run_cmd("sudo tar -C /usr/local --strip-components 1 -xzf /tmp/" .. archive)
+		run_cmd("rm /tmp/" .. archive)
+		return true
+	end
+	return false
+end
+
+-- 3. Package List Builder
 local function get_install_list(include_aur)
 	local list = {}
-	-- Add common packages
 	for _, p in ipairs(packages.common) do
 		table.insert(list, p)
 	end
 
-	-- Add distro specific
 	local distro_pkgs = packages[distro] or {}
 	for _, p in ipairs(distro_pkgs) do
 		table.insert(list, p)
 	end
 
-	-- Add AUR/Language specific if on Arch
 	if distro == "arch" and include_aur then
 		for lang, pkg in pairs(packages.aur) do
 			if not editor_lang or editor_lang[lang] then
@@ -48,75 +71,75 @@ local function get_install_list(include_aur)
 	return list
 end
 
--- 3. Utility functions
-local function run_cmd(cmd)
-	print(">> Executing: " .. cmd)
-	local res = os.execute(cmd)
-	return res == 0 or res == true -- Compatible with Lua 5.1 and 5.4
-end
-
-local function get_aur_helper()
-	if distro ~= "arch" then
-		return nil
-	end
-	for _, helper in ipairs({ "paru", "yay" }) do
-		if os.execute("command -v " .. helper .. " > /dev/null 2>&1") then
-			return helper
-		end
-	end
-	return nil
-end
-
--- 4. Main Installation Logic
-local function do_install()
-	local use_aur = false
-	for i = 2, #arg do
-		if arg[i] == "--aur" then
-			use_aur = true
-			break
+-- 4. Main Logic Sections
+local function handle_arch(use_aur)
+	local helper = nil
+	if use_aur then
+		for _, h in ipairs({ "paru", "yay" }) do
+			if os.execute("command -v " .. h .. " > /dev/null 2>&1") then
+				helper = h
+				break
+			end
 		end
 	end
 
-	local helper = get_aur_helper()
-	local install_done = false
-
-	-- Case A: Arch with AUR helper
-	if distro == "arch" and use_aur and helper then
+	if helper then
 		print("--- Using AUR helper: " .. helper .. " ---")
-		local full_list = get_install_list(true)
-		install_done =
-			run_cmd(helper .. " -S --needed --noconfirm " .. table.concat(full_list, " "))
-
-	-- Case B: Standard System Package Manager
+		return run_cmd(
+			helper .. " -S --needed --noconfirm " .. table.concat(get_install_list(true), " ")
+		)
 	else
-		print("--- Using standard package manager ---")
-		local base_list = get_install_list(false)
-		local pkgs_str = table.concat(base_list, " ")
-
-		if distro == "arch" then
-			install_done = run_cmd("sudo pacman -S --needed --noconfirm " .. pkgs_str)
-		elseif distro == "debian" or distro == "ubuntu" then
-			install_done = run_cmd("sudo apt-get update && sudo apt-get install -y " .. pkgs_str)
-		end
+		print("--- Using pacman ---")
+		-- Arch can also use official repo neovim or manual install
+		return run_cmd(
+			"sudo pacman -S --needed --noconfirm "
+				.. table.concat(get_install_list(false), " ")
+				.. " neovim"
+		)
 	end
-
-	return install_done
 end
 
--- 5. External Tools (Binary Scripts)
-local function install_external_tools()
-	print("--- Checking Language Runtimes ---")
+local function handle_debian_ubuntu()
+	print("--- Using apt-get ---")
+	local pkgs_str = table.concat(get_install_list(false), " ")
+	local ok = run_cmd("sudo apt-get update && sudo apt-get install -y " .. pkgs_str)
+	if ok then
+		return install_latest_neovim()
+	end
+	return false
+end
 
-	-- Rustup
+print("Language: " .. table.concat(user_config.editor_lang or { "All" }, ", "))
+
+-- 5. Execution Flow
+print("--- Starting Environment Setup for " .. distro .. " ---")
+
+local use_aur = false
+for i = 2, #arg do
+	if arg[i] == "--aur" then
+		use_aur = true
+		break
+	end
+end
+
+local success = false
+if distro == "arch" then
+	success = handle_arch(use_aur)
+elseif distro == "debian" or distro == "ubuntu" then
+	success = handle_debian_ubuntu()
+end
+
+if success then
+	-- Install Language Runtimes
+	print("--- Installing External Language Tools ---")
 	if not editor_lang or editor_lang["rust"] then
-		if not (distro == "arch" and os.execute("command -v rustup > /dev/null 2>&1")) then
+		if not (os.execute("command -v rustup > /dev/null 2>&1")) then
 			run_cmd("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y")
 		end
 	end
 
-	-- GHCup
 	if not editor_lang or editor_lang["haskell"] then
-		if not (distro == "arch" and os.execute("command -v ghcup > /dev/null 2>&1")) then
+		if not (os.execute("command -v ghcup > /dev/null 2>&1")) then
 			local ghcup_cmd = [[
                 export BOOTSTRAP_HASKELL_NONINTERACTIVE=1;
                 export BOOTSTRAP_HASKELL_GHC_VERSION=latest;
@@ -125,16 +148,9 @@ local function install_external_tools()
 			run_cmd(ghcup_cmd)
 		end
 	end
-end
 
--- --- Execution ---
-print("--- Initializing Installation for " .. distro .. " ---")
-
-if do_install() then
-	install_external_tools()
 	print("\n--- [SUCCESS] All tasks completed! ---")
-	print("Note: Please restart your shell to update PATH.")
 else
-	print("\n--- [ERROR] System installation failed ---")
+	print("\n--- [ERROR] Installation failed ---")
 	os.exit(1)
 end
