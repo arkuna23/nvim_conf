@@ -253,6 +253,7 @@ plugins["cmake-tools"] = {
 		cmake_runner = {
 			name = "toggleterm",
 		},
+		cmake_build_args = { "-j$(nproc)" },
 		cmake_generate_options = { "-DCMAKE_EXPORT_COMPILE_COMMANDS=1" },
 		cmake_soft_link_compile_commands = true,
 		cmake_build_directory = "build/${variant:buildType}",
@@ -275,6 +276,14 @@ plugins["vimtex"] = {
 		--	callback = require("lib.pdf").server_setup,
 		--})
 	end,
+}
+
+plugins["typst-preview"] = {
+	"chomosuke/typst-preview.nvim",
+	categories = { "lang", "typst" },
+	ft = "typst",
+	version = "1.*",
+	opts = {},
 }
 
 -- lua

@@ -73,6 +73,25 @@ M.toggle_plugins_enabled = function()
 	end
 end
 
+local function create_cond_check(specs)
+	local disabled = nil
+	return function(plug)
+		-- load neoconf
+		if not disabled then
+			local neoconf = require("neoconf")
+			neoconf.setup(specs["neoconf"].opts or {})
+			disabled = require("lib.util").list2hashtable(neoconf.get("plugins.disable", {}))
+		end
+
+		local parts = vim.split(plug[1], "/")
+		local name = parts[#parts]:gsub("%.nvim$", "")
+		if disabled[name] then
+			return false
+		end
+		return true
+	end
+end
+
 ---@alias EnabledPlugins boolean|table<string, EnabledPlugins>|string[]
 ---@alias _CategoriedPlugSpecs table<string, _CategoriedPlugSpecs>|PlugSpec[]
 ---switch plug
@@ -83,14 +102,14 @@ M.switch_plugin = function(enabled_list, specs)
 	if enabled_list == true then
 		for _, spec_tbl in pairs(specs) do
 			if spec_tbl.categories then
-				spec_tbl.cond = true
+				spec_tbl.cond = M.cond_check
 			else
 				M.switch_plugin(true, spec_tbl)
 			end
 		end
 	elseif type(enabled_list) == "table" then
 		for _, p_name in ipairs(enabled_list) do
-			specs[p_name].cond = true
+			specs[p_name].cond = M.cond_check
 		end
 		for cate, enabled_tbl in pairs(enabled_list) do
 			---@diagnostic disable-next-line: param-type-mismatch
@@ -99,29 +118,30 @@ M.switch_plugin = function(enabled_list, specs)
 	end
 end
 
-local specs = nil
+local _specs = nil
 
 M.plugin_specs_loaded = function()
-	return specs ~= nil
+	return _specs ~= nil
 end
 
 ---get plugin spec by name
 ---@param name string
 ---@return PlugSpec|nil
 M.get_plug_spec = function(name)
-	return specs and specs[name] or nil
+	return _specs and _specs[name] or nil
 end
 
 ---set plugin specs
 ---@param plug_specs table
 M.set_plugin_specs = function(plug_specs)
-	specs = plug_specs
+	_specs = plug_specs
+	M.cond_check = create_cond_check(plug_specs)
 end
 
-local categorized
+local _categorized
 
 M.set_categorized_plugins = function(plug_specs)
-	categorized = plug_specs
+	_categorized = plug_specs
 end
 
 ---categorize plugins, make json-schema and cache specs
@@ -183,7 +203,7 @@ M.catogrize_plugins = function(plugin_specs)
 				cate_schema.items.enum[#cate_schema.items.enum + 1] = n
 			end
 		else
-			v.cond = true
+			v.cond = M.cond_check
 		end
 	end
 

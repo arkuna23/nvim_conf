@@ -98,6 +98,7 @@ config.lsp = function()
 				"CMakeLists.txt",
 				".git"
 			)(),
+			single_file_support = true,
 			capabilities = {
 				offsetEncoding = { "utf-16" },
 			},
@@ -140,11 +141,15 @@ config.lsp = function()
 		}, {
 			lang = "python",
 		}),
-		["pyright"] = lsp_lib.create_config({
-			root_dir = function()
-				return (vim.loop or vim.uv).cwd()
-			end,
-		}, {
+		["pyright"] = lsp_lib.create_config(function()
+			return {
+				root_dir = require("lspconfig.util").root_pattern(
+					".git",
+					"uv.lock",
+					"pyproject.toml"
+				)(),
+			}
+		end, {
 			lang = "python",
 		}),
 		["jsonls"] = lsp_lib.create_config(function()
@@ -218,8 +223,8 @@ config.lsp = function()
 		}),
 		["biome"] = lsp_lib.create_config({
 			cmd = { "biome", "lsp-proxy" },
-			single_file_support = false,
-			root_dir = require("lspconfig.util").root_pattern("biome.json", "biome.jsonc")(),
+			single_file_support = true,
+			root_dir = require("lspconfig.util").root_pattern("biome.json", "biome.jsonc", ".git")(),
 			filetypes = {
 				"astro",
 				"css",
@@ -308,6 +313,11 @@ config.lsp = function()
 		["jdtls"] = lsp_lib.create_config({}, {
 			lang = "java",
 		}),
+		["tinymist"] = lsp_lib.create_config({
+			single_file_support = true,
+		}, {
+			lang = "typst",
+		}),
 	}
 
 	local php_lsp_opts = {
@@ -367,6 +377,7 @@ config.treesitter = {
 	"vue",
 	"haskell",
 	"zig",
+	"typst",
 }
 
 -- autotag filetypes
@@ -412,6 +423,10 @@ local mason_packages = {
 		"java-debug-adapter",
 		"java-test",
 		lang = "java",
+	},
+	{
+		"typstyle",
+		lang = "typst",
 	},
 }
 
@@ -474,6 +489,7 @@ config.formatter = function()
 		php = { "php_cs_fixer" },
 		kotlin = { "ktlint" },
 		zig = { "zigfmt" },
+		typst = { "typstyle" },
 	}
 
 	---@diagnostic disable-next-line: undefined-doc-name

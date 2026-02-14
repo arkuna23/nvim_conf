@@ -232,8 +232,6 @@ plugins["nvim-treesitter"] = {
 		}
 	end,
 	config = function(_, opts)
-		require("nvim-treesitter").setup(opts)
-
 		vim.opt.foldmethod = "expr"
 		vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 		vim.opt.foldlevel = 99
@@ -260,6 +258,8 @@ plugins["nvim-treesitter"] = {
 				"RainbowDelimiterCyan",
 			},
 		}
+
+		require("nvim-treesitter").setup(opts)
 	end,
 }
 

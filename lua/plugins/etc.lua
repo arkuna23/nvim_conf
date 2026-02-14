@@ -73,7 +73,7 @@ plugins["codeium"] = {
 }
 
 plugins["avante"] = {
-	"https://github.com/yetone/avante.nvim",
+	"yetone/avante.nvim",
 	categories = "ai",
 	event = "User Load",
 	opts = function()
@@ -90,6 +90,15 @@ plugins["avante"] = {
 					api_key_name = "DEEPSEEK_API_KEY",
 					endpoint = "https://api.deepseek.com",
 					model = "deepseek-coder",
+				},
+				moonshot = {
+					endpoint = "https://api.moonshot.cn/v1",
+					model = "kimi-k2-thinking",
+					timeout = 30000, -- Timeout in milliseconds
+					extra_request_body = {
+						temperature = 1,
+						max_tokens = 32768,
+					},
 				},
 			},
 			auto_suggestions_provider = avante.suggestions_provider or "copilot",

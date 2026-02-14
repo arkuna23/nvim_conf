@@ -31,6 +31,14 @@ elseif vim.fn.has("nvim-0.10") == 1 then
 			["+"] = require("vim.ui.clipboard.osc52").copy("+"),
 			["*"] = require("vim.ui.clipboard.osc52").copy("*"),
 		},
+		paste = {
+			["+"] = function()
+				return vim.fn.getreg('"', 1)
+			end,
+			["*"] = function()
+				return vim.fn.getreg('"', 1)
+			end,
+		},
 	}
 end
 
