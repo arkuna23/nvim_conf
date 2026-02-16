@@ -1,6 +1,7 @@
 ---lazy load module
 ---@param modname string
 ---@diagnostic disable-next-line: lowercase-global
+
 function lazy_require(modname)
 	local module
 	return setmetatable({}, {

@@ -3,6 +3,45 @@ local plugins = {}
 
 local manager = lazy_require("lib.manager")
 
+plugins["friendly-snippets"] = {
+	"rafamadriz/friendly-snippets",
+	categories = { "editor" },
+	config = function()
+		local loader = require("luasnip.loaders.from_vscode")
+		loader.load()
+		loader.lazy_load({
+			paths = {
+				vim.fn.stdpath("config") .. "/snippets",
+			},
+		})
+
+		local vscode = vim.fs.find(".vscode", {
+			upward = true,
+		})[1]
+
+		local result = vim.fs.find(function(name)
+			return name:match("^.*%.code%-snippets$")
+		end, { path = vscode })
+		for _, file in pairs(result) do
+			loader.load_standalone({ lazy = true, path = file })
+		end
+	end,
+}
+
+plugins["LuaSnip"] = {
+	"L3MON4D3/LuaSnip",
+	categories = "editor",
+	event = { "InsertEnter", "CmdlineEnter" },
+	build = "make install_jsregexp",
+	dependencies = {
+		"rafamadriz/friendly-snippets",
+	},
+	opts = {
+		history = true,
+		delete_check_events = "TextChanged",
+	},
+}
+
 plugins["nvim-cmp"] = {
 	"hrsh7th/nvim-cmp",
 	categories = "editor",
@@ -13,34 +52,15 @@ plugins["nvim-cmp"] = {
 		"hrsh7th/cmp-buffer",
 		"hrsh7th/cmp-path",
 		"hrsh7th/cmp-cmdline",
-		"rafamadriz/friendly-snippets",
 		"onsails/lspkind-nvim",
 	},
-	keys = {
-		{
-			"<Tab>",
-			function()
-				return vim.snippet.active({ direction = 1 }) and "<cmd>lua vim.snippet.jump(1)<cr>"
-					or "<Tab>"
-			end,
-			expr = true,
-			silent = true,
-			mode = { "i", "s" },
-		},
-		{
-			"<S-Tab>",
-			function()
-				return vim.snippet.active({ direction = -1 })
-						and "<cmd>lua vim.snippet.jump(-1)<cr>"
-					or "<Tab>"
-			end,
-			expr = true,
-			silent = true,
-			mode = { "i", "s" },
-		},
-	},
+    -- stylua: ignore
+    keys = {
+        { "<tab>", function() require("luasnip").jump(1) end, mode = "s" },
+        { "<s-tab>", function() require("luasnip").jump(-1) end, mode = { "i", "s" } },
+    },
 	event = { "InsertEnter", "CmdlineEnter" },
-	config = function()
+	opts = function()
 		local lspkind = require("lspkind")
 		lspkind.init({
 			preset = "codicons",
@@ -56,8 +76,8 @@ plugins["nvim-cmp"] = {
 		if manager.get_plug_spec("copilot-cmp").enabled then
 			sources2[#sources2 + 1] = { name = "copilot" }
 		end
-		---@diagnostic disable-next-line: redundant-parameter
-		cmp.setup({
+
+		return {
 			snippet = {
 				expand = function(args)
 					require("luasnip").lsp_expand(args.body)
@@ -69,7 +89,6 @@ plugins["nvim-cmp"] = {
 				},
 				priority_weight = 1,
 			},
-
 			sources = cmp.config.sources({
 				{ name = "lazydev" },
 			}, {
@@ -102,7 +121,12 @@ plugins["nvim-cmp"] = {
 					maxwidth = 30,
 				}),
 			},
-		})
+		}
+	end,
+	config = function(_, opts)
+		local cmp = require("cmp")
+		---@diagnostic disable-next-line: redundant-parameter
+		cmp.setup(opts)
 
 		---@diagnostic disable-next-line: undefined-field
 		cmp.setup.cmdline({ "/", "?" }, {
@@ -259,7 +283,7 @@ plugins["nvim-treesitter"] = {
 			},
 		}
 
-		require("nvim-treesitter").setup(opts)
+		require("nvim-treesitter.configs").setup(opts)
 	end,
 }
 

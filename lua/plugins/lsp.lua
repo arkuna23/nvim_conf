@@ -3,21 +3,19 @@ local plugins = {}
 
 plugins["nvim-lspconfig"] = {
 	"neovim/nvim-lspconfig",
-	event = "VeryLazy",
+	event = "User Load",
 	categories = "lsp",
 	config = function(_, _)
-		vim.defer_fn(function()
-			require("mason-lspconfig")
-			for k, v in pairs(require("plugins.conf").lsp()) do
-				if string.sub(k, 1, 1) ~= "_" then
-					if not require("neoconf").get(k .. ".disable") then
-						local opts = v()
-						vim.lsp.config[k] = opts
-					end
+		require("mason-lspconfig")
+		for k, v in pairs(require("plugins.conf").lsp()) do
+			if string.sub(k, 1, 1) ~= "_" then
+				if not require("neoconf").get(k .. ".disable") then
+					local opts = v()
+					vim.lsp.config[k] = opts
 				end
 			end
-			vim.api.nvim_command("LspStart")
-		end, 0)
+		end
+		vim.api.nvim_command("LspStart")
 	end,
 }
 

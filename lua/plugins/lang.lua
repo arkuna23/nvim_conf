@@ -106,7 +106,8 @@ plugins["haskell-tools"] = {
 	end,
 }
 
-plugins["neotest-haskell"] = { "mrcjkb/neotest-haskell", categories = { "lang", "haskell" } }
+plugins["neotest-haskell"] =
+	{ "mrcjkb/neotest-haskell", categories = { "lang", "haskell" }, lazy = true }
 
 plugins["haskell-snippets"] = {
 	"mrcjkb/haskell-snippets.nvim",

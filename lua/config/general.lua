@@ -45,4 +45,10 @@ end
 opt.scrolloff = 10
 opt.sidescrolloff = 10
 
+vim.filetype.add({
+	extension = {
+		["code-snippets"] = "jsonc",
+	},
+})
+
 return {}

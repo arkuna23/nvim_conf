@@ -123,7 +123,7 @@ end
 ---@param dyn_table table
 ---@param exclude string[]|nil
 M.process_dyn_table = function(dyn_table, exclude)
-	exclude = M.list2hashtable(exclude or {})
+	exclude = M.list2hash(exclude or {})
 	for k, v in pairs(dyn_table) do
 		if (not exclude[k]) and type(v) == "function" then
 			dyn_table[k] = v()
@@ -134,7 +134,7 @@ end
 ---convert list items to table keys
 ---@param list any[]
 ---@return table
-M.list2hashtable = function(list)
+M.list2hash = function(list)
 	local hash = {}
 	for _, v in ipairs(list) do
 		hash[v] = true
@@ -239,21 +239,6 @@ M.get_proper_layout = function()
 	)
 			and "horizontal"
 		or "vertical"
-end
-
----convert array to hash table
----@param array any[]|nil
----@return table|nil
-M.array_to_hash = function(array)
-	if not array then
-		return nil
-	end
-
-	local hash = {}
-	for _, v in ipairs(array) do
-		hash[v] = true
-	end
-	return hash
 end
 
 M.is_docker = function()

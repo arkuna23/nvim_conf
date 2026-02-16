@@ -73,14 +73,24 @@ M.toggle_plugins_enabled = function()
 	end
 end
 
-local function create_cond_check(specs)
+local function create_cond_check()
 	local disabled = nil
 	return function(plug)
 		-- load neoconf
 		if not disabled then
-			local neoconf = require("neoconf")
-			neoconf.setup(specs["neoconf"].opts or {})
-			disabled = require("lib.util").list2hashtable(neoconf.get("plugins.disable", {}))
+			local result = vim.fs.find(".neoconf.json", {
+				upward = true,
+			})
+
+			if #result > 0 then
+				local util = require("lib.util")
+				local content = util.read_file(result[1]) or "{}"
+				local config = vim.json.decode(content).plugins or {}
+
+				disabled = config.disable and util.list2hash(config.disable) or {}
+			else
+				disabled = {}
+			end
 		end
 
 		local parts = vim.split(plug[1], "/")

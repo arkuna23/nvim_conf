@@ -3,7 +3,7 @@
 -- 0. Load Config & Initialize
 local util = require("lib.util")
 local user_config = require("user_config")
-local editor_lang = util.array_to_hash(user_config.editor_lang)
+local editor_lang = util.list2hash(user_config.editor_lang)
 
 local distro = arg[1]
 if not distro then
