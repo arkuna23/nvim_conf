@@ -28,7 +28,7 @@ config.lsp = function()
 			settings = {
 				Lua = {
 					runtime = {
-						version = "Lua 5.1",
+						version = "LuaJIT",
 					},
 					diagnostics = {
 						globals = { "vim" },

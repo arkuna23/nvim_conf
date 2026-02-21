@@ -6,6 +6,10 @@ local manager = lazy_require("lib.manager")
 plugins["friendly-snippets"] = {
 	"rafamadriz/friendly-snippets",
 	categories = { "editor" },
+	event = { "InsertEnter", "CmdlineEnter" },
+	dependencies = {
+		"L3MON4D3/LuaSnip",
+	},
 	config = function()
 		local loader = require("luasnip.loaders.from_vscode")
 		loader.load()
@@ -30,12 +34,8 @@ plugins["friendly-snippets"] = {
 
 plugins["LuaSnip"] = {
 	"L3MON4D3/LuaSnip",
-	categories = "editor",
-	event = { "InsertEnter", "CmdlineEnter" },
+	categories = { "editor" },
 	build = "make install_jsregexp",
-	dependencies = {
-		"rafamadriz/friendly-snippets",
-	},
 	opts = {
 		history = true,
 		delete_check_events = "TextChanged",
@@ -44,7 +44,7 @@ plugins["LuaSnip"] = {
 
 plugins["nvim-cmp"] = {
 	"hrsh7th/nvim-cmp",
-	categories = "editor",
+	categories = { "editor" },
 	dependencies = {
 		"L3MON4D3/LuaSnip",
 		"saadparwaiz1/cmp_luasnip",
@@ -153,7 +153,7 @@ plugins["nvim-cmp"] = {
 
 plugins["sniprun"] = {
 	"michaelb/sniprun",
-	categories = "editor",
+	categories = { "editor" },
 	cmd = "SnipRun",
 	branch = "master",
 	build = "sh install.sh",
@@ -177,7 +177,7 @@ plugins["sniprun"] = {
 -- formatting
 plugins["conform"] = {
 	"stevearc/conform.nvim",
-	categories = "editor",
+	categories = { "editor" },
 	event = { "User Load" },
 	cmd = { "ConformInfo" },
 	keys = {
@@ -226,7 +226,7 @@ plugins["conform"] = {
 
 plugins["nvim-treesitter"] = {
 	"nvim-treesitter/nvim-treesitter",
-	categories = "editor",
+	categories = { "editor" },
 	build = ":TSUpdate",
 	dependencies = { "hiphish/rainbow-delimiters.nvim" },
 	event = "User Load",
@@ -289,14 +289,14 @@ plugins["nvim-treesitter"] = {
 
 plugins["neoconf"] = {
 	"folke/neoconf.nvim",
-	categories = "editor",
+	categories = { "editor" },
 	cmd = "Neoconf",
 	opts = {},
 }
 
 plugins["nvim-autopairs"] = {
 	"windwp/nvim-autopairs",
-	categories = "editor",
+	categories = { "editor" },
 	event = "InsertEnter",
 	main = "nvim-autopairs",
 	opts = {},
@@ -304,7 +304,7 @@ plugins["nvim-autopairs"] = {
 
 plugins["mini-surround"] = {
 	"echasnovski/mini.surround",
-	categories = "editor",
+	categories = { "editor" },
 	recommended = true,
 	keys = {
 		{ "gsa", desc = "Add Surrounding", mode = { "n", "v" } },
@@ -329,7 +329,7 @@ plugins["mini-surround"] = {
 }
 plugins["mini.bufremove"] = {
 	"echasnovski/mini.bufremove",
-	categories = "editor",
+	categories = { "editor" },
 	keys = {
 		{
 			"<leader>bd",
@@ -363,7 +363,7 @@ plugins["mini.bufremove"] = {
 }
 plugins["img-clip"] = {
 	"HakonHarnes/img-clip.nvim",
-	categories = "editor",
+	categories = { "editor" },
 	opts = {
 		default = {
 			dir_path = "images",
@@ -384,7 +384,7 @@ plugins["img-clip"] = {
 -- session manager
 plugins["persistence"] = {
 	"folke/persistence.nvim",
-	categories = "editor",
+	categories = { "editor" },
 	event = "User Load",
 	cmd = "RestoreSession",
 	opts = {
