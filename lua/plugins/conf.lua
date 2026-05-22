@@ -318,6 +318,54 @@ config.lsp = function()
 		}, {
 			lang = "typst",
 		}),
+		["gopls"] = lsp_lib.create_config({
+			filetypes = { "go", "gomod", "gowork", "gotmpl" },
+			settings = {
+				{
+					gopls = {
+						gofumpt = true,
+						codelenses = {
+							gc_details = false,
+							generate = true,
+							regenerate_cgo = true,
+							run_govulncheck = true,
+							test = true,
+							tidy = true,
+							upgrade_dependency = true,
+							vendor = true,
+						},
+						hints = {
+							assignVariableTypes = true,
+							compositeLiteralFields = true,
+							compositeLiteralTypes = true,
+							constantValues = true,
+							functionTypeParameters = true,
+							parameterNames = true,
+							rangeVariableTypes = true,
+						},
+						analyses = {
+							nilness = true,
+							unusedparams = true,
+							unusedwrite = true,
+							useany = true,
+						},
+						usePlaceholders = true,
+						completeUnimported = true,
+						staticcheck = true,
+						directoryFilters = {
+							"-.git",
+							"-.vscode",
+							"-.idea",
+							"-.vscode-test",
+							"-node_modules",
+						},
+						semanticTokens = true,
+					},
+				},
+			},
+		}, {
+			lang = "go",
+		}),
 	}
 
 	local php_lsp_opts = {
@@ -378,6 +426,11 @@ config.treesitter = {
 	"haskell",
 	"zig",
 	"typst",
+
+	"go",
+	"gomod",
+	"gowork",
+	"gosum",
 }
 
 -- autotag filetypes
@@ -427,6 +480,15 @@ local mason_packages = {
 	{
 		"typstyle",
 		lang = "typst",
+	},
+	{
+		"goimports",
+		"gofumpt",
+		"gomodifytags",
+		"impl",
+		"golangci-lint",
+		"delve",
+		lang = "go",
 	},
 }
 
@@ -490,6 +552,7 @@ config.formatter = function()
 		kotlin = { "ktlint" },
 		zig = { "zigfmt" },
 		typst = { "typstyle" },
+		go = { "goimports", "gofumpt" },
 	}
 
 	---@diagnostic disable-next-line: undefined-doc-name

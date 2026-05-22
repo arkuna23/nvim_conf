@@ -15,7 +15,6 @@ plugins["nvim-lspconfig"] = {
 				end
 			end
 		end
-		vim.api.nvim_command("LspStart")
 	end,
 }
 
