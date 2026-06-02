@@ -102,7 +102,7 @@ plugins["avante"] = {
 			},
 			auto_suggestions_provider = avante.suggestions_provider or "copilot",
 			behaviour = {
-				auto_suggestions = true,
+				auto_suggestions = avante.auto_suggestions == true,
 			},
 		}
 
