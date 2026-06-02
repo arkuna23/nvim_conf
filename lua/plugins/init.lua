@@ -50,24 +50,20 @@ manager.set_plugin_specs(plugins)
 local categorized_plug, schema = manager.catogrize_plugins(plugins)
 manager.set_categorized_plugins(categorized_plug)
 
---write jsonschema
-vim.system({ "jq" }, {
-	stdin = vim.json.encode(schema),
-}, function(res)
-	if res.code == 0 then
-		local file = io.open(vim.fn.stdpath("data") .. "/plug_schema.json", "w")
-		if file then
-			file:write(res.stdout)
-			file:close()
-		end
-	else
-		vim.notify(res.stderr, vim.log.levels.ERROR)
-	end
-end)
+local function write_plugin_schema()
+	local path = vim.fn.stdpath("data") .. "/plug_schema.json"
+	util.write_file(path, vim.json.encode(schema))
+end
 
---read plugin jsonconf
-local file_content = vim.json.decode(
-	table.concat(vim.fn.readfile(vim.fn.stdpath("config") .. "/conf/plugins_loaded.json"))
-)
-manager.switch_plugin(manager.process_plug_jsonconf(file_content), categorized_plug)
+local function read_plugin_config()
+	local default = { ["enable-all"] = true }
+	return util.read_json_file(
+		vim.fn.stdpath("config") .. "/conf/plugins_loaded.json",
+		default,
+		{ notify_name = "conf/plugins_loaded.json" }
+	)
+end
+
+write_plugin_schema()
+manager.switch_plugin(manager.process_plug_jsonconf(read_plugin_config()), categorized_plug)
 return util.table_value2array(plugins)

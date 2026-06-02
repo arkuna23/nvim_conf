@@ -4,7 +4,7 @@ local php_lsp = "intelephense"
 
 -- process editor language config
 local editor_lang = nil
-local usr_config = require("user_config")
+local usr_config = require("lib.user_config")
 if usr_config.editor_lang then
 	editor_lang = {}
 	for _, lang in pairs(usr_config.editor_lang) do

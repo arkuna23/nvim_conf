@@ -302,7 +302,7 @@ plugins["lazydev"] = {
 	},
 }
 
-local editor_lang = require("user_config").editor_lang
+local editor_lang = require("lib.user_config").editor_lang
 
 if editor_lang then
 	local enabled = {}

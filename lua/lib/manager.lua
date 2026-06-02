@@ -45,11 +45,7 @@ end
 
 M.plugins_enabled = function()
 	---@diagnostic disable-next-line: undefined-field
-	local state = vim.uv.fs_stat(flag_path)
-	M.plugins_enabled = function()
-		return state
-	end
-	return M.plugins_enabled()
+	return vim.uv.fs_stat(flag_path) ~= nil
 end
 
 M.toggle_plugins_enabled = function()
@@ -74,28 +70,32 @@ M.toggle_plugins_enabled = function()
 end
 
 local function create_cond_check()
-	local disabled = nil
+	local disabled_by_config = {}
 	return function(plug)
+		local util = require("lib.util")
+		local current = vim.api.nvim_buf_get_name(0)
+		local search_from = current ~= "" and vim.fs.dirname(current) or vim.fn.getcwd()
+		local result = vim.fs.find(".neoconf.json", {
+			path = search_from,
+			upward = true,
+		})
+		local neoconf_path = result[1] or "__none__"
+
 		-- load neoconf
-		if not disabled then
-			local result = vim.fs.find(".neoconf.json", {
-				upward = true,
-			})
-
-			if #result > 0 then
-				local util = require("lib.util")
-				local content = util.read_file(result[1]) or "{}"
-				local config = vim.json.decode(content).plugins or {}
-
-				disabled = config.disable and util.list2hash(config.disable) or {}
+		if disabled_by_config[neoconf_path] == nil then
+			if neoconf_path ~= "__none__" then
+				local config = util.read_json_file(neoconf_path, {}, { notify_name = ".neoconf.json" })
+				local plugins = type(config.plugins) == "table" and config.plugins or {}
+				disabled_by_config[neoconf_path] = plugins.disable and util.list2hash(plugins.disable)
+					or {}
 			else
-				disabled = {}
+				disabled_by_config[neoconf_path] = {}
 			end
 		end
 
 		local parts = vim.split(plug[1], "/")
 		local name = parts[#parts]:gsub("%.nvim$", "")
-		if disabled[name] then
+		if disabled_by_config[neoconf_path][name] then
 			return false
 		end
 		return true
@@ -139,6 +139,16 @@ end
 ---@return PlugSpec|nil
 M.get_plug_spec = function(name)
 	return _specs and _specs[name] or nil
+end
+
+---@param name string
+---@return boolean
+M.is_plugin_enabled = function(name)
+	local spec = M.get_plug_spec(name)
+	if not spec then
+		return false
+	end
+	return spec.enabled ~= false and spec.cond ~= false
 end
 
 ---set plugin specs

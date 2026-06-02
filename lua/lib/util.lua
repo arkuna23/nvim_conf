@@ -36,7 +36,43 @@ M.read_file = function(path)
 	if not file then
 		return nil
 	end
-	return file:read("*a")
+	local content = file:read("*a")
+	file:close()
+	return content
+end
+
+---@param path string
+---@param default any
+---@param opts { notify_name?: string }|nil
+---@return any
+M.read_json_file = function(path, default, opts)
+	local content = M.read_file(path)
+	if not content then
+		return default
+	end
+
+	local ok, decoded = pcall(vim.json.decode, content)
+	if ok then
+		return decoded
+	end
+
+	opts = opts or {}
+	local notify_name = opts.notify_name or path
+	vim.notify("Failed to decode JSON from " .. notify_name, vim.log.levels.ERROR)
+	return default
+end
+
+---@param path string
+---@param content string
+---@return boolean
+M.write_file = function(path, content)
+	local file = io.open(path, "w")
+	if not file then
+		return false
+	end
+	file:write(content)
+	file:close()
+	return true
 end
 
 M.config_root = function()

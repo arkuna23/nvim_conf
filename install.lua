@@ -2,8 +2,8 @@
 
 -- 0. Load Config & Initialize
 local util = require("lib.util")
-local user_config = require("user_config")
-local editor_lang = util.list2hash(user_config.editor_lang)
+local user_config = require("lib.user_config")
+local editor_lang = user_config.editor_lang and util.list2hash(user_config.editor_lang) or nil
 
 local distro = arg[1]
 if not distro then

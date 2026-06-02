@@ -23,11 +23,13 @@ plugins["friendly-snippets"] = {
 			upward = true,
 		})[1]
 
-		local result = vim.fs.find(function(name)
-			return name:match("^.*%.code%-snippets$")
-		end, { path = vscode })
-		for _, file in pairs(result) do
-			loader.load_standalone({ lazy = true, path = file })
+		if vscode then
+			local result = vim.fs.find(function(name)
+				return name:match("^.*%.code%-snippets$")
+			end, { path = vscode })
+			for _, file in pairs(result) do
+				loader.load_standalone({ lazy = true, path = file })
+			end
 		end
 	end,
 }
@@ -69,11 +71,10 @@ plugins["nvim-cmp"] = {
 
 		local cmp = require("cmp")
 		local sources2 = {
-			{ name = "copilot" },
 			{ name = "buffer" },
 			{ name = "path" },
 		}
-		if manager.get_plug_spec("copilot-cmp").enabled then
+		if manager.is_plugin_enabled("copilot-cmp") then
 			sources2[#sources2 + 1] = { name = "copilot" }
 		end
 

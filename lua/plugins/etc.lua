@@ -39,11 +39,11 @@ plugins["copilot"] = {
 	cmd = "Copilot",
 	build = ":Copilot auth",
 	opts = function()
-		local succ, usr_config = pcall(require, "user_config")
+		local usr_config = require("lib.user_config")
 		return {
 			suggestion = { enabled = false },
 			panel = { enabled = false },
-			auth_provider_url = succ and usr_config.copilot_auth_url or nil,
+			auth_provider_url = usr_config.copilot_auth_url,
 			filetypes = {
 				markdown = true,
 				help = true,
@@ -77,8 +77,7 @@ plugins["avante"] = {
 	categories = "ai",
 	event = "User Load",
 	opts = function()
-		local _, usr_config = pcall(require, "user_config")
-		usr_config = usr_config or {}
+		local usr_config = require("lib.user_config")
 		local avante = usr_config.avante or {}
 
 		local config = {
