@@ -8,7 +8,7 @@ end
 
 vim.o.guifont = env_get_or_default("CODE_FONT", "JetBrainsMono Nerd Font Mono")
 	.. ":h"
-	.. env_get_or_default("FONT_SIZE", "11")
+	.. env_get_or_default("FONT_SIZE", "12")
 vim.g.neovide_opacity = tonumber(env_get_or_default("BG_ALPHA", 0.8))
 vim.g.neovide_cursor_vfx_mode = "railgun"
 vim.g.transparency = tonumber(env_get_or_default("BG_ALPHA", 0.8))
