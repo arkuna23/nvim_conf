@@ -105,11 +105,11 @@ plugins["haskell-tools"] = {
 	"mrcjkb/haskell-tools.nvim",
 	version = "^3",
 	categories = { "lang", "haskell" },
-	ft = { "haskell", "lhaskell", "cabal", "cabalproject" },
+	event = "User Load",
 	dependencies = {
 		{ "nvim-telescope/telescope.nvim", optional = true },
 	},
-	init = function()
+	config = function()
 		vim.g.haskell_tools = vim.tbl_deep_extend("force", vim.g.haskell_tools or {}, {
 			hls = {
 				auto_attach = function()
@@ -125,13 +125,23 @@ plugins["haskell-tools"] = {
 				end,
 			},
 		})
-	end,
-	config = function()
 		local ok, telescope = pcall(require, "telescope")
 		if ok then
 			telescope.load_extension("ht")
 		end
+		-- Initialize the file that triggered User Load.
+		if
+			vim.tbl_contains({ "haskell", "lhaskell", "cabal", "cabalproject" }, vim.bo.filetype)
+		then
+			vim.cmd("runtime! ftplugin/" .. vim.bo.filetype .. ".lua")
+		end
 	end,
+}
+
+plugins["neotest"] = {
+	"nvim-neotest/neotest",
+	categories = { "lang", "haskell" },
+	event = "User Load",
 }
 
 plugins["neotest-haskell"] =
@@ -141,7 +151,7 @@ plugins["haskell-snippets"] = {
 	"mrcjkb/haskell-snippets.nvim",
 	dependencies = { "L3MON4D3/LuaSnip" },
 	categories = { "lang", "haskell" },
-	ft = { "haskell", "lhaskell", "cabal", "cabalproject" },
+	event = "User Load",
 	config = function()
 		local haskell_snippets = require("haskell-snippets").all
 		require("luasnip").add_snippets("haskell", haskell_snippets, { key = "haskell" })
@@ -150,7 +160,7 @@ plugins["haskell-snippets"] = {
 
 plugins["telescope_hoogle"] = {
 	"luc-tielen/telescope_hoogle",
-	ft = { "haskell", "lhaskell", "cabal", "cabalproject" },
+	event = "User Load",
 	categories = { "lang", "haskell" },
 	dependencies = {
 		{ "nvim-telescope/telescope.nvim" },

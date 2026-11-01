@@ -6,7 +6,7 @@ local manager = lazy_require("lib.manager")
 plugins["friendly-snippets"] = {
 	"rafamadriz/friendly-snippets",
 	categories = { "editor" },
-	event = { "InsertEnter", "CmdlineEnter" },
+	event = "User Load",
 	dependencies = {
 		"L3MON4D3/LuaSnip",
 	},
@@ -37,6 +37,7 @@ plugins["friendly-snippets"] = {
 plugins["LuaSnip"] = {
 	"L3MON4D3/LuaSnip",
 	categories = { "editor" },
+	event = "User Load",
 	build = "make install_jsregexp",
 	opts = {
 		history = true,
