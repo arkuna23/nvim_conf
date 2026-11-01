@@ -7,14 +7,15 @@ plugins["nvim-lspconfig"] = {
 	categories = "lsp",
 	config = function(_, _)
 		require("mason-lspconfig")
-		for k, v in pairs(require("plugins.conf").lsp()) do
-			if string.sub(k, 1, 1) ~= "_" then
-				if not require("neoconf").get(k .. ".disable") then
-					local opts = v()
-					vim.lsp.config[k] = opts
-				end
-			end
+		require("neoconf")
+		local project = require("lib.project_lsp")
+		local servers = {}
+		for name, spec in pairs(require("plugins.conf").lsp()) do
+			vim.lsp.config(name, spec())
+			vim.lsp.config(name, project.wrap(name, vim.lsp.config[name]))
+			servers[#servers + 1] = name
 		end
+		vim.lsp.enable(servers)
 	end,
 }
 
@@ -23,11 +24,12 @@ plugins["mason-lspconfig"] = {
 	lazy = true,
 	categories = "lsp",
 	dependencies = {
-		"williamboman/mason.nvim",
+		"mason-org/mason.nvim",
 	},
 	opts = function()
 		return {
 			ensure_installed = table.keys(require("plugins.conf").lsp()),
+			automatic_enable = false,
 		}
 	end,
 }
@@ -58,53 +60,59 @@ plugins["mason"] = {
 					package_uninstalled = symbols.Negative,
 				},
 			},
-			codelens = {
-				enabled = false,
-			},
 		}
 	end,
 	config = function(_, opts)
 		require("mason").setup(opts)
 
-		-- reload lsp
 		local mr = require("mason-registry")
-		mr:on("package:install:success", function()
-			vim.defer_fn(function()
-				-- trigger FileType event to possibly load this newly installed LSP server
-				require("lazy.core.handler.event").trigger({
-					event = "FileType",
-					buf = vim.api.nvim_get_current_buf(),
-				})
-			end, 100)
-		end)
-
-		-- install packages
-		mr.refresh(function()
+		mr:on(
+			"package:install:success",
+			vim.schedule_wrap(function()
+				for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+					if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype ~= "" then
+						vim.api.nvim_exec_autocmds("FileType", { buffer = buf, modeline = false })
+					end
+				end
+			end)
+		)
+		mr.refresh(vim.schedule_wrap(function(success)
+			if not success then
+				vim.notify("Mason registry refresh failed; see :MasonLog", vim.log.levels.ERROR)
+				return
+			end
 			for _, tool in ipairs(require("plugins.conf").mason.packages()) do
-				local p = mr.get_package(tool)
-				if not p:is_installed() then
-					p:install()
+				local ok, pkg = pcall(mr.get_package, tool)
+				if not ok then
+					vim.notify(tostring(pkg), vim.log.levels.ERROR)
+				elseif not pkg:is_installed() and not pkg:is_installing() then
+					pkg:install({}, function(installed, err)
+						if not installed then
+							vim.schedule(function()
+								vim.notify(
+									"Mason " .. tool .. ": " .. tostring(err),
+									vim.log.levels.ERROR
+								)
+							end)
+						end
+					end)
 				end
 			end
-		end)
-
-		-- ui config
+		end))
+		local symbols = require("lib.symbols")
+		local severity = vim.diagnostic.severity
 		vim.diagnostic.config({
 			virtual_text = true,
-			signs = true,
 			update_in_insert = true,
+			signs = {
+				text = {
+					[severity.ERROR] = symbols.Error,
+					[severity.WARN] = symbols.Warn,
+					[severity.HINT] = symbols.Hint,
+					[severity.INFO] = symbols.Info,
+				},
+			},
 		})
-		local symbols = require("lib.symbols")
-		local signs = {
-			Error = symbols.Error,
-			Warn = symbols.Warn,
-			Hint = symbols.Hint,
-			Info = symbols.Info,
-		}
-		for type, icon in pairs(signs) do
-			local hl = "DiagnosticSign" .. type
-			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-		end
 	end,
 }
 

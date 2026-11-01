@@ -54,7 +54,9 @@ local lsp_default_keybindings = {
 	}, -- Refresh & Display Codelens
 	["source_action"] = {
 		"<leader>cA",
-		"<cmd>lua vim.lsp.buf.source_action()<CR>",
+		function()
+			vim.lsp.buf.code_action({ context = { only = { "source" } } })
+		end,
 		"n",
 		"Source Action",
 	}, -- Source Action
@@ -127,9 +129,6 @@ local lsp_default_keybindings = {
 	}, -- Extract block supports only normal mode
 }
 local lsp_default_on_attach = function(client, _)
-	client.server_capabilities.documentFormattingProvider = false
-	client.server_capabilities.documentRangeFormattingProvider = false
-
 	-- copilot
 	if client.name == "copilot" then
 		require("copilot_cmp")._on_insert_enter({})
@@ -184,7 +183,7 @@ lsp.create_config = function(tbl, opts)
 	local func = function()
 		local util = require("lib.util")
 		local new_tbl = util.parse_dyn_value(tbl)
-		new_tbl = new_tbl or {}
+		new_tbl = vim.deepcopy(new_tbl or {})
 
 		local l_opts = table.default_values(opts, {
 			inherit_on_attach = true,
@@ -219,7 +218,7 @@ lsp.create_config = function(tbl, opts)
 				new_attach(client, bufnr)
 			end
 		end
-		local new_conf = vim.tbl_extend("force", lsp_default_config(), new_tbl)
+		local new_conf = vim.tbl_deep_extend("force", lsp_default_config(), new_tbl)
 		if l_opts.setup then
 			new_conf = l_opts.setup(new_conf) or new_conf
 		end

@@ -24,22 +24,23 @@ opt.clipboard:append("unnamedplus")
 
 if g.neovide then
 	vim.g.neovide_input_use_subcommand = true
-elseif vim.fn.has("nvim-0.10") == 1 then
-	vim.g.clipboard = {
-		name = "OSC 52",
-		copy = {
-			["+"] = require("vim.ui.clipboard.osc52").copy("+"),
-			["*"] = require("vim.ui.clipboard.osc52").copy("*"),
-		},
-		paste = {
-			["+"] = function()
-				return vim.fn.getreg('"', 1)
-			end,
-			["*"] = function()
-				return vim.fn.getreg('"', 1)
-			end,
-		},
-	}
+elseif vim.env.SSH_CONNECTION or vim.env.SSH_TTY then
+	opt.clipboard:remove({ "unnamed", "unnamedplus" })
+	local clipboard = { name = "OSC 52", copy = {}, paste = {}, cache_enabled = 0 }
+	for _, reg in ipairs({ "+", "*" }) do
+		local cached = { { "" }, "v" }
+		local copy = require("vim.ui.clipboard.osc52").copy(reg)
+		clipboard.copy[reg] = function(lines, regtype)
+			cached = { vim.deepcopy(lines), regtype }
+			copy(lines, regtype)
+		end
+		clipboard.paste[reg] = function()
+			return vim.deepcopy(cached)
+		end
+	end
+	vim.g.clipboard = clipboard
+else
+	vim.g.clipboard = nil
 end
 
 opt.scrolloff = 10

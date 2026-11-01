@@ -2,15 +2,7 @@ local config = {}
 
 local php_lsp = "intelephense"
 
--- process editor language config
-local editor_lang = nil
-local usr_config = require("lib.user_config")
-if usr_config.editor_lang then
-	editor_lang = {}
-	for _, lang in pairs(usr_config.editor_lang) do
-		editor_lang[lang] = true
-	end
-end
+local languages = require("lib.languages")
 
 -- lsp configs
 config.lsp = function()
@@ -18,13 +10,6 @@ config.lsp = function()
 	local util = require("lib.util")
 	local conf = {
 		lua_ls = lsp_lib.create_config({
-			root_dir = require("lspconfig.util").root_pattern(
-				".luarc.json",
-				".luarc.jsonc",
-				".luacheckrc",
-				".stylua.toml",
-				".git"
-			)(),
 			settings = {
 				Lua = {
 					runtime = {
@@ -48,20 +33,19 @@ config.lsp = function()
 			lang = "lua",
 		}),
 		["omnisharp"] = lsp_lib.create_config({
-			cmd = {
-				"dotnet",
-				vim.fn.stdpath("data") .. "/mason/packages/omnisharp/libexec/Omnisharp.dll",
-			},
 			on_attach = function(client, _)
 				client.server_capabilities.semanticTokensProvider = nil
 			end,
-			enable_editorconfig_support = true,
-			enable_ms_build_load_projects_on_demand = false,
-			enable_roslyn_analyzers = false,
-			organize_imports_on_format = false,
-			enable_import_completion = false,
-			sdk_include_prereleases = true,
-			analyze_open_documents_only = false,
+			settings = {
+				FormattingOptions = { EnableEditorConfigSupport = true, OrganizeImports = false },
+				MsBuild = { LoadProjectsOnDemand = false },
+				RoslynExtensionsOptions = {
+					EnableAnalyzersSupport = false,
+					EnableImportCompletion = false,
+					AnalyzeOpenDocumentsOnly = false,
+				},
+				Sdk = { IncludePrereleases = true },
+			},
 		}, {
 			inherit_on_attach = true,
 			lang = "c#",
@@ -85,20 +69,6 @@ config.lsp = function()
 			},
 		}, { lang = "emmet" }),
 		["clangd"] = lsp_lib.create_config({
-			root_dir = require("lspconfig.util").root_pattern(
-				"Makefile",
-				"configure.ac",
-				"configure.in",
-				"config.h.in",
-				"meson.build",
-				"meson_options.txt",
-				"build.ninja",
-				"compile_commands.json",
-				"compile_flags.txt",
-				"CMakeLists.txt",
-				".git"
-			)(),
-			single_file_support = true,
 			capabilities = {
 				offsetEncoding = { "utf-16" },
 			},
@@ -141,27 +111,9 @@ config.lsp = function()
 		}, {
 			lang = "python",
 		}),
-		["pyright"] = lsp_lib.create_config(function()
-			return {
-				root_dir = require("lspconfig.util").root_pattern(
-					".git",
-					"uv.lock",
-					"pyproject.toml"
-				)(),
-			}
-		end, {
-			lang = "python",
-		}),
+		["pyright"] = lsp_lib.create_config({}, { lang = "python" }),
 		["jsonls"] = lsp_lib.create_config(function()
 			return {
-				-- lazy-load schemastore when needed
-				on_new_config = function(new_config)
-					new_config.settings.json.schemas = new_config.settings.json.schemas or {}
-					vim.list_extend(
-						new_config.settings.json.schemas,
-						require("schemastore").json.schemas()
-					)
-				end,
 				settings = {
 					json = {
 						schemas = require("schemastore").json.schemas({
@@ -222,9 +174,6 @@ config.lsp = function()
 			lang = "css",
 		}),
 		["biome"] = lsp_lib.create_config({
-			cmd = { "biome", "lsp-proxy" },
-			single_file_support = true,
-			root_dir = require("lspconfig.util").root_pattern("biome.json", "biome.jsonc", ".git")(),
 			filetypes = {
 				"astro",
 				"css",
@@ -250,10 +199,12 @@ config.lsp = function()
 		--	inherit_keybindings = false,
 		--}),
 		["ts_ls"] = lsp_lib.create_config(function()
-			local volar_path =
-				util.get_pkg_path("vue-language-server", "node_modules/@vue/language-server")
+			local volar_path = util.get_pkg_path(
+				"vue-language-server",
+				"node_modules/@vue/language-server",
+				{ warn = false }
+			)
 			return {
-				root_dir = require("lspconfig.util").root_pattern("package.json")(),
 				init_options = {
 					plugins = {
 						{
@@ -280,6 +231,7 @@ config.lsp = function()
 		end, {
 			lang = "js",
 		}),
+		["vue_ls"] = lsp_lib.create_config({}, { lang = "js" }),
 		["taplo"] = lsp_lib.create_config({}, {
 			lang = "toml",
 		}),
@@ -288,18 +240,7 @@ config.lsp = function()
 		}, {
 			lang = "tailwind",
 		}),
-		["hls"] = lsp_lib.create_config({}, {
-			lang = "haskell",
-		}),
-		["kotlin_language_server"] = lsp_lib.create_config(function()
-			return {
-				root_dir = vim.fs.dirname(
-					vim.fs.find({ "settings.gradle", "settings.gradle.kts" }, { upward = true })[1]
-				),
-			}
-		end, {
-			lang = "kotlin",
-		}),
+		["kotlin_language_server"] = lsp_lib.create_config({}, { lang = "kotlin" }),
 		["zls"] = lsp_lib.create_config(function()
 			return {
 				settings = {
@@ -321,46 +262,44 @@ config.lsp = function()
 		["gopls"] = lsp_lib.create_config({
 			filetypes = { "go", "gomod", "gowork", "gotmpl" },
 			settings = {
-				{
-					gopls = {
-						gofumpt = true,
-						codelenses = {
-							gc_details = false,
-							generate = true,
-							regenerate_cgo = true,
-							run_govulncheck = true,
-							test = true,
-							tidy = true,
-							upgrade_dependency = true,
-							vendor = true,
-						},
-						hints = {
-							assignVariableTypes = true,
-							compositeLiteralFields = true,
-							compositeLiteralTypes = true,
-							constantValues = true,
-							functionTypeParameters = true,
-							parameterNames = true,
-							rangeVariableTypes = true,
-						},
-						analyses = {
-							nilness = true,
-							unusedparams = true,
-							unusedwrite = true,
-							useany = true,
-						},
-						usePlaceholders = true,
-						completeUnimported = true,
-						staticcheck = true,
-						directoryFilters = {
-							"-.git",
-							"-.vscode",
-							"-.idea",
-							"-.vscode-test",
-							"-node_modules",
-						},
-						semanticTokens = true,
+				gopls = {
+					gofumpt = true,
+					codelenses = {
+						gc_details = false,
+						generate = true,
+						regenerate_cgo = true,
+						run_govulncheck = true,
+						test = true,
+						tidy = true,
+						upgrade_dependency = true,
+						vendor = true,
 					},
+					hints = {
+						assignVariableTypes = true,
+						compositeLiteralFields = true,
+						compositeLiteralTypes = true,
+						constantValues = true,
+						functionTypeParameters = true,
+						parameterNames = true,
+						rangeVariableTypes = true,
+					},
+					analyses = {
+						nilness = true,
+						unusedparams = true,
+						unusedwrite = true,
+						useany = true,
+					},
+					usePlaceholders = true,
+					completeUnimported = true,
+					staticcheck = true,
+					directoryFilters = {
+						"-.git",
+						"-.vscode",
+						"-.idea",
+						"-.vscode-test",
+						"-node_modules",
+					},
+					semanticTokens = true,
 				},
 			},
 		}, {
@@ -368,23 +307,11 @@ config.lsp = function()
 		}),
 	}
 
-	local php_lsp_opts = {
-		root_dir = function()
-			return (vim.loop or vim.uv).cwd()
-		end,
-	}
+	conf[php_lsp] = lsp_lib.create_config({}, { lang = "php" })
 
-	if php_lsp == "intelephense" then
-		conf.intelephense = lsp_lib.create_config(php_lsp_opts)
-	elseif php_lsp == "phpactor" then
-		conf.phpactor = lsp_lib.create_config(php_lsp_opts)
-	end
-
-	if editor_lang then
-		for name, lsp_conf in pairs(conf) do
-			if lsp_conf.__language and not editor_lang[lsp_conf.__language] then
-				conf[name] = nil
-			end
+	for name, lsp_conf in pairs(conf) do
+		if not languages.enabled(lsp_conf.__language) then
+			conf[name] = nil
 		end
 	end
 
@@ -406,7 +333,6 @@ config.treesitter = {
 	"javascript",
 	"json",
 	"json5",
-	"jsonc",
 	"lua",
 	"python",
 	"rust",
@@ -433,6 +359,25 @@ config.treesitter = {
 	"gosum",
 }
 
+local parser_languages = {
+	c_sharp = "c#",
+	cpp = "c/cpp",
+	tsx = "js",
+	vue = "js",
+	ron = "rust",
+	json5 = "json",
+	jsonc = "json",
+	markdown_inline = "markdown",
+	latex = "tex",
+	bibtex = "tex",
+	ninja = "cmake",
+	gomod = "go",
+	gowork = "go",
+	gosum = "go",
+}
+config.treesitter = vim.tbl_filter(function(parser)
+	return parser == "vim" or languages.enabled(parser_languages[parser] or parser)
+end, config.treesitter)
 -- autotag filetypes
 config.autotag_ft = {
 	"html",
@@ -454,9 +399,10 @@ local mason_packages = {
 	{ "ktlint", lang = "kotlin" },
 	"tree-sitter-cli",
 	{ "stylua", lang = "lua" },
-	{ "prettier", "biome", lang = "js/ts" },
+	{ "prettier", lang = { "js", "html", "css", "json", "markdown", "yaml" } },
+	{ "biome", lang = { "js", "css", "json", "graphql" } },
 	{ "cmakelang", "clang-format", lang = "c/cpp" },
-	{ "isort", lang = "python" },
+	{ "isort", "black", lang = "python" },
 	{
 		"markdownlint",
 		"markdown-toc",
@@ -500,7 +446,7 @@ config.mason = {
 			local ty = type(pkg)
 
 			if ty == "table" then
-				if editor_lang and not editor_lang[pkg.lang] then
+				if not languages.enabled(pkg.lang) then
 					goto continue
 				end
 
@@ -526,28 +472,31 @@ config.formatter = function()
 	local formatter = {}
 
 	-- formatter filetypes
+	local web = require("lib.format").web_formatters
 	formatter.ft = {
 		lua = { "stylua" },
 		python = { "isort", "black" },
-		["javascriptreact"] = { "biome" },
-		["typescriptreact"] = { "biome" },
-		["vue"] = { "biome" },
-		["css"] = { "biome" },
-		["scss"] = { "biome" },
-		["less"] = { "biome" },
-		["html"] = { "biome" },
-		["json"] = { "biome" },
-		["jsonc"] = { "biome" },
-		["yaml"] = { "biome" },
-		["graphql"] = { "biome" },
-		["handlebars"] = { "biome" },
-		javascript = { "biome" },
-		typescript = { "biome" },
+		javascript = web,
+		javascriptreact = web,
+		typescript = web,
+		typescriptreact = web,
+		css = web,
+		json = web,
+		jsonc = web,
+		graphql = web,
+		vue = { "prettier" },
+		svelte = { "prettier" },
+		astro = { "prettier" },
+		scss = { "prettier" },
+		less = { "prettier" },
+		html = { "prettier" },
+		yaml = { "prettier" },
+		handlebars = { "prettier" },
+		markdown = { "prettier" },
+		["markdown.mdx"] = { "prettier" },
 		cs = { "clang-format" },
 		c = { "clang-format" },
 		cpp = { "clang-format" },
-		["markdown"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
-		["markdown.mdx"] = { "prettier", "markdownlint", "markdown-toc", stop_after_first = true },
 		php = { "php_cs_fixer" },
 		kotlin = { "ktlint" },
 		zig = { "zigfmt" },
@@ -585,47 +534,7 @@ config.formatter = function()
 			require_cwd = true,
 		},
 		["prettier"] = {
-			prepend_args = function(_, ctx)
-				local config_files = {
-					".prettierrc",
-					".prettierrc.yaml",
-					".prettierrc.yml",
-					".prettierrc.json",
-					".prettierrc.toml",
-					"prettier.config.js",
-					".prettierrc.js",
-				}
-
-				for _, file in ipairs(config_files) do
-					local matches =
-						vim.fs.find(file, { upward = true, path = ctx.dirname, type = "file" })
-					if #matches > 0 then
-						return {}
-					end
-				end
-
-				-- check package.json
-				local json_path = vim.fs.find(
-					"package.json",
-					{ upward = true, path = ctx.dirname, type = "file" }
-				)[1]
-				if json_path then
-					local json = util.read_file(json_path)
-					if json then
-						local content = vim.json.decode(json)
-						if content.prettier then
-							return {}
-						end
-					else
-						vim.notify("cannot read " .. json_path, vim.log.levels.ERROR)
-					end
-				end
-
-				return {
-					"--config",
-					util.config_root() .. "/conf/.prettierrc.json",
-				}
-			end,
+			prepend_args = require("lib.format").prettier_args,
 		},
 	}
 

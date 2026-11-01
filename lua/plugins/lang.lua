@@ -40,10 +40,22 @@ plugins["rustaceanvim"] = {
 	categories = { "lang", "rust" },
 	version = "^5", -- Recommended
 	ft = { "rust" },
-	build = "rustup component add rust-analyzer",
 	opts = function()
 		return {
 			server = {
+				auto_attach = function(bufnr)
+					return vim.bo[bufnr].buftype == ""
+						and vim.fn.executable("rust-analyzer") == 1
+						and require("lib.project_lsp").enabled("rust_analyzer", bufnr)
+				end,
+				settings = function(root, defaults)
+					local settings =
+						require("rustaceanvim.config.server").load_rust_analyzer_settings(
+							root,
+							{ default_settings = defaults }
+						)
+					return require("lib.project_lsp").settings("rust_analyzer", root, settings)
+				end,
 				on_attach = function(_, bufnr)
 					require("lib.lsp").key_attach(bufnr)
 				end,
@@ -51,11 +63,10 @@ plugins["rustaceanvim"] = {
 					-- rust-analyzer language server configuration
 					["rust-analyzer"] = {
 						cargo = {
-							loadOutDirsFromCheck = true,
-							runBuildScripts = true,
+							buildScripts = { enable = true },
 						},
-						-- Add clippy lints for Rust.
-						checkOnSave = {
+						checkOnSave = true,
+						check = {
 							allFeatures = true,
 							command = "clippy",
 							extraArgs = { "--no-deps" },
@@ -98,6 +109,23 @@ plugins["haskell-tools"] = {
 	dependencies = {
 		{ "nvim-telescope/telescope.nvim", optional = true },
 	},
+	init = function()
+		vim.g.haskell_tools = vim.tbl_deep_extend("force", vim.g.haskell_tools or {}, {
+			hls = {
+				auto_attach = function()
+					return vim.fn.executable("haskell-language-server-wrapper") == 1
+						and require("lib.project_lsp").enabled("hls", 0)
+				end,
+				settings = function(root)
+					local settings = require("haskell-tools").lsp.load_hls_settings(root, {})
+					return require("lib.project_lsp").settings("hls", root, settings)
+				end,
+				on_attach = function(_, bufnr)
+					require("lib.lsp").key_attach(bufnr)
+				end,
+			},
+		})
+	end,
 	config = function()
 		local ok, telescope = pcall(require, "telescope")
 		if ok then
@@ -302,18 +330,9 @@ plugins["lazydev"] = {
 	},
 }
 
-local editor_lang = require("lib.user_config").editor_lang
-
-if editor_lang then
-	local enabled = {}
-	for _, lang in ipairs(editor_lang) do
-		enabled[lang] = true
-	end
-
-	for _, plugin in pairs(plugins) do
-		if not enabled[plugin.categories[2]] then
-			plugin.enabled = false
-		end
+for _, plugin in pairs(plugins) do
+	if not require("lib.languages").enabled(plugin.categories[2]) then
+		plugin.enabled = false
 	end
 end
 

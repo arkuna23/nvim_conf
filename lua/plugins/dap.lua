@@ -1,6 +1,13 @@
 ---@type table<string, PlugSpec>
 local plugins = {}
 
+local function get_args(config)
+	local copy = vim.deepcopy(config)
+	local input = vim.fn.input({ prompt = "Arguments: ", cancelreturn = false })
+	copy.args = type(input) == "string" and require("dap.utils").splitstr(input)
+		or require("dap").ABORT
+	return copy
+end
 plugins["nvim-dap"] = {
 	"mfussenegger/nvim-dap",
 	recommended = true,
@@ -36,27 +43,28 @@ plugins["nvim-dap"] = {
 		-- virtual text for the debugger
 		{
 			"theHamsta/nvim-dap-virtual-text",
+			opts = {},
 		},
 		-- mason.nvim integration
 		{
 			"jay-babu/mason-nvim-dap.nvim",
 			dependencies = "mason.nvim",
 			cmd = { "DapInstall", "DapUninstall" },
-			opts = {
-				-- Makes a best effort to setup the various debuggers with
-				-- reasonable debug configurations
-				automatic_installation = true,
-
-				-- You can provide additional configuration to the handlers,
-				-- see mason-nvim-dap README for more information
-				handlers = {},
-
-				-- You'll need to check that you have the required things installed
-				-- online, please don't ask me how to install them :)
-				ensure_installed = {
-					-- Update this to ensure that you have the debuggers for the langs you want
-				},
-			},
+			opts = function()
+				local adapters = {}
+				local languages = require("lib.languages")
+				if languages.enabled({ "c/cpp", "rust" }) then
+					adapters[#adapters + 1] = "codelldb"
+				end
+				if languages.enabled("kotlin") then
+					adapters[#adapters + 1] = "kotlin"
+				end
+				return {
+					automatic_installation = false,
+					ensure_installed = adapters,
+					handlers = { codelldb = function() end, kotlin = function() end },
+				}
+			end,
 		},
 
 		-- VsCode launch.json parser
@@ -64,14 +72,14 @@ plugins["nvim-dap"] = {
 			"folke/neoconf.nvim",
 		},
 	},
-	opts = function()
+	config = function()
 		---@diagnostic disable undefined-field
 		local dap = require("dap")
-		local mason_registry = require("mason-registry")
-
-		local codelldb_root = vim.fn.expand("$MASON/packages/codelldb") .. "/extension/"
-		local codelldb_path = codelldb_root .. "adapter/codelldb"
-		local liblldb_path = codelldb_root .. "lldb/lib/liblldb.so"
+		local codelldb_path = require("lib.util").get_pkg_path(
+			"codelldb",
+			"extension/adapter/codelldb",
+			{ warn = false }
+		)
 		local codelldb_conf = {
 			{
 				type = "codelldb",
@@ -133,28 +141,28 @@ plugins["nvim-dap"] = {
 			},
 		}
 
-		dap.adapters = {
-			codelldb = {
+		if require("lib.languages").enabled({ "c/cpp", "rust" }) then
+			dap.adapters.codelldb = {
 				type = "server",
 				port = "${port}",
 				host = "127.0.0.1",
-				executable = {
-					command = codelldb_path,
-					args = { "--liblldb", liblldb_path, "--port", "${port}" },
-				},
-			},
-			kotlin = {
+				executable = { command = codelldb_path, args = { "--port", "${port}" } },
+			}
+		end
+		if require("lib.languages").enabled("c/cpp") then
+			for _, ft in ipairs({ "c", "cpp" }) do
+				dap.configurations[ft] =
+					vim.list_extend(dap.configurations[ft] or {}, vim.deepcopy(codelldb_conf))
+			end
+		end
+		if require("lib.languages").enabled("kotlin") then
+			dap.adapters.kotlin = {
 				type = "executable",
 				command = "kotlin-debug-adapter",
 				options = { auto_continue_if_many_stopped = false },
-			},
-		}
-
-		dap.configurations = {
-			c = codelldb_conf,
-			cpp = codelldb_conf,
-			kotlin = kt_conf,
-		}
+			}
+			dap.configurations.kotlin = vim.list_extend(dap.configurations.kotlin or {}, kt_conf)
+		end
 
 		---@diagnostic enable undefined-field
 	end,
@@ -164,7 +172,6 @@ plugins["nvim-dap"] = {
         { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, desc = "Breakpoint Condition" },
         { "<leader>db", function() require("dap").toggle_breakpoint() end, desc = "Toggle Breakpoint" },
         { "<leader>dc", function() require("dap").continue() end, desc = "Continue" },
----@diagnostic disable-next-line: undefined-global
         { "<leader>da", function() require("dap").continue({ before = get_args }) end, desc = "Run with Args" },
         { "<leader>dC", function() require("dap").run_to_cursor() end, desc = "Run to Cursor" },
         { "<leader>dg", function() require("dap").goto_() end, desc = "Go to Line (No Execute)" },
@@ -181,7 +188,6 @@ plugins["nvim-dap"] = {
         { "<leader>dw", function() require("dap.ui.widgets").hover() end, desc = "Widgets" },
     },
 	---@diagnostic enable: undefined-field
-	config = function() end,
 }
 
 return plugins

@@ -186,7 +186,7 @@ plugins["conform"] = {
 			-- Customize or remove this keymap to your liking
 			"<leader>f",
 			function()
-				require("conform").format({ async = true, lsp_fallback = true })
+				require("conform").format({ async = true })
 			end,
 			mode = "n",
 			desc = "Format buffer",
@@ -200,28 +200,22 @@ plugins["conform"] = {
 			formatters_by_ft = config.formatter().ft,
 			-- Customize formatters
 			formatters = config.formatter().config,
+			default_format_opts = { lsp_format = "fallback", timeout_ms = 2000 },
+			format_on_save = function(bufnr)
+				if
+					not vim.tbl_contains(
+						config.formatter().format_on_save_exclude_ft,
+						vim.bo[bufnr].filetype
+					)
+				then
+					return { timeout_ms = 2000 }
+				end
+			end,
 		}
 	end,
 	init = function()
 		-- If you want the formatexpr, here is the place to set it
 		vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
-	end,
-	config = function(_, opts)
-		require("conform").setup(opts)
-		vim.api.nvim_create_autocmd("BufWritePre", {
-			pattern = "*",
-			callback = function(args)
-				local filetype = vim.bo[args.buf].filetype
-				if
-					not table.list_contains(
-						require("plugins.conf").formatter().format_on_save_exclude_ft,
-						filetype
-					)
-				then
-					require("conform").format({ bufnr = args.buf })
-				end
-			end,
-		})
 	end,
 }
 
@@ -230,38 +224,14 @@ plugins["nvim-treesitter"] = {
 	categories = { "editor" },
 	build = ":TSUpdate",
 	dependencies = { "hiphish/rainbow-delimiters.nvim" },
-	event = "User Load",
+	lazy = false,
 	main = "nvim-treesitter",
 	opts = function()
 		return {
-			ensure_installed = require("plugins.conf").treesitter,
-			highlight = {
-				enable = true,
-				additional_vim_regex_highlighting = false,
-				disable = {
-					"latex",
-				},
-			},
-			incremental_selection = {
-				enable = true,
-				keymaps = {
-					init_selection = "<CR>",
-					node_incremental = "<CR>",
-					node_decremental = "<BS>",
-					scope_incremental = "<TAB>",
-				},
-			},
-			indent = {
-				enable = true,
-			},
+			parsers = require("plugins.conf").treesitter,
 		}
 	end,
 	config = function(_, opts)
-		vim.opt.foldmethod = "expr"
-		vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
-		vim.opt.foldlevel = 99
-		vim.opt.foldcolumn = "1"
-
 		local rainbow_delimiters = require("rainbow-delimiters")
 
 		vim.g.rainbow_delimiters = {
@@ -284,7 +254,7 @@ plugins["nvim-treesitter"] = {
 			},
 		}
 
-		require("nvim-treesitter").setup(opts)
+		require("lib.treesitter").setup(opts.parsers)
 	end,
 }
 
@@ -292,7 +262,10 @@ plugins["neoconf"] = {
 	"folke/neoconf.nvim",
 	categories = { "editor" },
 	cmd = "Neoconf",
-	opts = {},
+	opts = {
+		live_reload = false,
+		plugins = { lspconfig = { enabled = false } },
+	},
 }
 
 plugins["nvim-autopairs"] = {
